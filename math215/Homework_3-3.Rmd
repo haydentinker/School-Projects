@@ -1,0 +1,158 @@
+---
+title: "Homework Assignment 3-3"
+author: "In this assignment we will explore the relationships between pairs of continuous variables.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_3-3.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Old Faithful Data**
+
+The built-in dataset `faithful` is a data frame containing information about eruptions of the old faithful gyser in Yellowstone National Park. Your task in this assignment is to explore the relationship between the two variables, `erpution` and `waiting`.
+
+* **Problem 1**: Read the help file for the `faithful` dataset and determine what the two columns represent.
+
+```{r}
+?faithful
+```
+
+
+* **Problem 2**: Compute the covariance and default correlation coefficient for the two variables.  Save these in the variables `faithful.cov` and `faithful.cor`.
+
+```{r}
+faithful.cov<-cov(faithful$eruptions,faithful$waiting)
+faithful.cor<- cor(faithful$eruptions,faithful$waiting)
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Construct a scatter plot with a trendline.
+
+```{r}
+plot(faithful$eruptions,faithful$waiting) +
+  abline(lm(faithful$waiting~faithful$eruptions),col="green")
+```
+
+
+* **Problem 4**:  Based on all of the information above, write a description of the relationship between the two variables.  Include a discussion of the strength of the relationship with numerical justification.
+
+```{solution,eval=FALSE}
+There is a positive relationship. The cov and cor are both positive (They both increase together and since the cor is close to 1 they have a strong relationship).
+```
+
+
+**Economics**
+
+The builtin dataset `longley` contains macroeconomic data for the US from 1947 through 1962.  In this activity you will conduct an exploratory data analysis searching for variables which are highly related.  Any assertions you make must be justified with numerical and/or graphical evidence.
+
+* **Problem 5**: Read the help file for the `longley` dataset and write a short description of each of the variables.
+
+```{solution,eval=FALSE}
+GNP.deflator- GNP implicit price deflator 
+GNP - Gross National Product
+Unemployed- number of unemployed
+Armed.Forces - number of people in the armed forces
+Population- noninstitutionalized population >= 14 years of age
+Year- the year
+Employed- number of people employed
+```
+
+
+* **Problem 6**: Construct a correlation matrix for this data.  Save it to the variable `longley.cor` and print it out.
+
+```{r}
+longley.cor <- cor(longley[,])
+longley.cor
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Run the following command and describe how the output relates to the matrix you found above.
+
+```{r}
+library(corrgram)
+corrgram(longley,lower.panel=panel.conf,upper.panel=panel.pts)
+```
+
+```{solution,eval=FALSE}
+The sides are mirrored. The left side shows the cor between two of the variables and the right side shows the scatterplot of those two. It is the same as the graph we had above.
+```
+
+
+* **Problem 8** Pick at least one pair of variables that you believe are strongly related and repeat steps 2, 3, and 4 from our investigation of the old faithful data set above.  Based on the results, describe the relationship.
+
+```{r}
+popGNP.cov <- cov(longley$Population, longley$GNP)
+popGNP.cor <- cor(longley$Population, longley$GNP)
+```
+
+```{r}
+plot(longley$Population,longley$GNP) +
+  abline(lm(longley$GNP~longley$Population),col="green")
+
+```
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+The relationship is very strong and positive. The cor is almost 1 and the cov is very positive.
+```
+
+
+* **Problem 9**: Pick at least one pair of variables that you believe is not strongly related and repeat steps 2, 3, and 4 from our investigation of the old faithful data set above.  Based on the results, describe the relationship.
+
+```{r}
+unemployedArmed.cov <- cov(longley$Armed.Forces, longley$Unemployed)
+unemployedArmed.cor <- cor(longley$Armed.Forces, longley$Unemployed)
+```
+
+```{r}
+plot(longley$Armed.Forces,longley$Unemployed) +
+  abline(lm(longley$Unemployed~longley$Armed.Forces),col="green")
+```
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+The data seems to have a negative correlation but, the correlation is not very strong. Both the cor and cov are negative and the trend has a negative slope but, the trend line doesn't represent the data very well.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 3.3.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

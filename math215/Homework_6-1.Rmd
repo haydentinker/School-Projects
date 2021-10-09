@@ -1,0 +1,208 @@
+---
+title: "Homework Assignment 6-1"
+author: "In this assignment we will use built-in R functions to test hypotheses about binomial distributions and distributions of sample proportions.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_6-1.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+
+**Binomial Distribution**
+
+The general consensus is that during the 1980s about 5% of the nation's children were diagnosed with autism.  Some claim that an increase in certain chemicals in the environment has lead to an increase in autism rates since then.  In this portion of the assignment, we will investigate this claim.
+
+
+* **Problem 1**: Formulate an appropriate hypothesis to test this claim.  Give both the null and alternative hypotheses in the solution area below.
+
+```{solution,eval=FALSE}
+Null: Roughly 5% of the nation's children have autism
+Alternative: More than 5% of the nation's children have autism
+```
+
+
+* **Problem 2**: A recent study examined 384 children and found that 46 showed signs of autism.  Perform a test of your hypothesis using the R function `binom.test`.  Save the results of this test in the variable `test1.results` and print them out.  Be sure you know where to find the p-value of the test!
+
+```{r}
+test1.results <- binom.test(x=46,n=384,p=0.05,alternative ="greater" )
+test1.results
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+* **Problem 3**: What do you conclude based on the p-value above?  Indicate how the p-value you found leads to your conclusion.
+
+```{solution,eval=FALSE}
+The p-value is less than the significance value so we reject the null hypothesis.
+```
+
+
+* **Problem 4**: Suppose a follow student conducts the same test you just did and makes the following statement.
+
+    * *This test proves that an increase in environmental chemicals has lead to an increase in autism.*
+    
+Critique this statement.
+
+```{solution,eval=FALSE}
+  It doesn't prove anything. It is about determining if we reject or fail to reject the null. The most we can say is we reject the null hypothesis.
+```
+
+
+**Vehicle Emissions**
+
+A company with a fleet of 200 cars found that the emissions system on 8 of the 24 cars tested failed to meet pollution guidelines.  We wish to test the claim that 20% of the cars in the fleet fail to meet pollution guidelines.
+
+
+* **Problem 5**: First state the null and alternative hypotheses.
+   
+```{solution,eval=FALSE}
+Null: Less or greater than 20% of the cars fail to meet pollution guidelines
+Alternative: 20% fail to meet the guideline
+```
+
+
+* **Problem 6**: Next, use the `binom.test` function to complete a hypothesis test.  Save the results in the variable `test2.results` and print them out.
+
+```{r}
+test2.results <- binom.test(x=8,n=24,p=0.20,alternative = c("two.sided","less","greater"))
+test2.results
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Finally, state your conclusion.  
+
+```{solution,eval=FALSE}
+We fail to reject the null.
+```
+
+
+**Racial Profiling Test**
+
+We now revisit the racial profiling data set from the city of Austin Texas.  This time we will examine all 12k rows of the arrest data set.  Use the following commands to download this data.
+
+```{r}
+df <- read.csv("https://data.austintexas.gov/resource/x4p3-hj3y.csv?$limit=20000&$$app_token=ssRpFGv9pqU2dcW0St7dxbyD5",stringsAsFactors=F)
+```
+
+
+* **Problem 8**: Take a random sample of 100 of the apd_race_desc values from this data set and save it to the variable `my.sample`.  Then determine the proportion of individuals in this data set who were identified as white (apd_race_desc equals "WHITE").  Save that proportion to the variable `prop.white` and print it out. Do not change the `set.seed` command, and be sure to enter your code below that line.
+
+```{r}
+set.seed(100)
+my.sample <- sample(df$apd_race_desc,100)
+prop.white<-0
+for(i in 1:100){
+  if(my.sample[i]=="WHITE"){
+  prop.white<-prop.white+1
+  }
+}
+prop.white<- prop.white /100
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+* **Problem 9**: Formulate the hypotheses that would be needed to test the claim that less than 40% of those arrested in Austin are identified as white. Write out both the null and alternative hypotheses.
+
+```{solution,eval=FALSE}
+Null: At least 40% of those arrested are white 
+Alternative: Less than 40% of those arrested are white 
+```
+
+
+* **Problem 10**: Use the R function `prop.test` to test your hypothesis about this proportion. Save the results in the variable `test3.results`, print them out, and then indicate at which levels below (if any) your test is significant (i.e. would lead you to reject the null hypothesis).
+
+    * 1% = Highly Significant
+    * 5% = Statistically Significant
+    * 10% = Tending Towards Significance
+
+```{r}
+test3.results <- prop.test(x=30,n=100,p=.40,alternative= "less")
+test3.results
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+```{solution,eval=TRUE}
+We reject the null hypothesis
+```
+
+
+* **Problem 11**: How repeatable is your test?  Write a loop that repeats the sample/test procedure above 500 times and keeps track of how many times you would reject the null hypothesis at each significance level in a vector named `rejected` where the first component counts the number of times you'd reject at the 0.10 significance level, the 2nd component at the 0.05 significance level, and the third at the 0.010 significance level.  Print out the proportion of tests that led to rejection at each significance level.  Hint: If you assign the results of `prop.test` to a variable like `result` then you can access the p-value using `result$p.value`.
+
+```{r}
+rejected<-c(0,0,0)
+for (i in 1:500){
+  a.sample <- sample(df$apd_race_desc,100)
+
+  prop.white2<-0
+for(i in 1:100){
+  if(a.sample[i]=="WHITE"){
+  prop.white2<-prop.white2+1
+  }
+}
+results <- prop.test(x=prop.white2,n=100,p=.40,alternative= "less")
+if(results[3]<0.10){
+  rejected[3]<-rejected[3]+1
+  }
+if(results[3]<0.050){
+  rejected[2]<-rejected[2]+1
+  }
+if(results[3]<0.010){
+  rejected[1]<-rejected[1]+1
+    }
+
+}
+```
+
+```{r}
+.AutogradeProblem11()
+```
+
+
+* **Problem 12**: What does the result above tell us about or testing procedure?  What changes might you suggest?
+
+```{solution,eval=FALSE}
+We did a lot of trial and error. We could make a loop like we did and increase the amount of 100 samples we take. We will get better results when we have a smaller significance level.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 6.1.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

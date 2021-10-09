@@ -1,0 +1,159 @@
+---
+title: "Homework Assignment 2-1"
+author: "MATH 215"
+abstract: "In this assignment we will explore probability and probability distributions.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_2-3.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+
+**Racial Profiling Data**
+
+The racial profiling data set contains information regarding arrests in the city of Austin, TX. In this data set, the APD_RACE_DESC column indicates the race of the individual arrested.  The abbreviations used for race in this column are:
+
+    * A -- Asian
+    * B -- Black
+    * H -- Hispanic
+    * M -- Mixed
+    * U -- Unknown
+    * W -- White
+
+Load this data set into R and use it to complete the following tasks.  
+
+* **Problem 1**: Create a data frame named `df` by loading this [CSV file](https://data.austintexas.gov/api/views/vykk-upaj/rows.csv?accessType=DOWNLOAD) containing racial profiling data from the city of Austin, TX.
+
+```{r}
+df <- read.csv("https://data.austintexas.gov/resource/tqet-vty2.csv")
+```
+
+
+* **Problem 2**: Construct a probability distribution for the APD_RACE_DESC variable, which gives the race of the individual arrested.  Store it in the variable race.dist and print it out.
+
+```{r}
+race.dist <- table(df$apd_race)/length(df$apd_race)
+print(race.dist)
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Construct a probability bar graph for your distribution.  What conclusions can you draw based on your distribution and/or bar graph?
+
+```{r}
+barplot(race.dist)
+```
+
+```{solution,eval=FALSE}
+It looks like there are more W, B, and H people getting arrested than the rest with W being the most.
+```
+
+
+**Tooth Length Data**
+
+* **Problem 4**: Construct a histogram for the length of a tooth in the built-in dataset ToothGrowth.  Use several different bin widths and/or numbers of bins.  Find one that you think best shows the shape of the data and explain why.
+
+```{r}
+layout(matrix(c(1,2,3,4),2,2,byrow=TRUE))
+barplot(table(cut(as.numeric(ToothGrowth$len),5)),space=0,main="Five Bins")
+barplot(table(cut(as.numeric(ToothGrowth$len),10)),space=0,main="Ten Bins")
+barplot(table(cut(as.numeric(ToothGrowth$len),15)),space=0,main="Fifteen Bins")
+barplot(table(cut(as.numeric(ToothGrowth$len),20)),space=0,main="Twenty Bins")
+barplot(table(cut(as.numeric(ToothGrowth$len),25)),space=0,main="Twenty Five Bins")
+barplot(table(cut(as.numeric(ToothGrowth$len),30)),space=0,main="Thirty Bins")
+```
+
+```{solution,eval=FALSE}
+Either 15 or 25 because we think that they show the shape of the graph the best. They look pretty similar with the highs and lows but they aren't just constantly going up and down.
+```
+
+
+* **Problem 5**: Construct a density graph for length as seen in your text and in the example videos.  How is your density graph different from your histogram?
+
+```{r}
+library("ggplot2")
+qplot(ToothGrowth$len,geom="density",main="Density Curve",adjust=1)
+```
+
+```{solution,eval=FALSE}
+It is smoother and it doesn't go as down as much as the histogram.
+```
+
+
+* **Problem 6**: Based on the two graphs constructed above, describe the shape of the distribution of tooth-lengths in this data set.  Include an estimate of center and a description of the skew and/or symmetry of the distribution.
+    
+```{solution,eval=FALSE}
+It is negatively skewed. The center is around 20.
+```
+
+
+* **Problem 7**: Construct a probability distribution table using a bin width of 5.  You may find the `cut` and `seq` functions useful here. Save your table using the variable tooth.dist.  Print out this distribution and then use it to compute the probability a tooth in this set will have a length between 15 and 25, assigning this to the variable discrete.prob.
+
+```{r}
+tooth.dist <-table(cut(as.numeric(ToothGrowth$len),seq(0,35,5)))/length(ToothGrowth$len)
+tooth.dist
+#discrete.prob<-sapply(seq(15,25,1),tooth.dist)/length(tooth.dist)
+y<-length(ToothGrowth$len[ToothGrowth$len > 15 & ToothGrowth$len < 25])
+x<-length(ToothGrowth$len)
+discrete.prob <-y/x
+discrete.prob
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+* **Problem 8**: Construct a probability density function for length based on this data.  Use it to compute the probability a length will be between 15 and 25.  Assign this probability to the variable continuous.prob and print it out.
+
+```{r}
+tooth.density<-density(ToothGrowth$len,adjust=1)
+probDensFunction <- approxfun(tooth.density$x,tooth.density$y,rule=2)
+continuous.prob <- integrate(probDensFunction,15,25)
+continuous.prob
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+* **Problem 9**: Describe the difference between the two numbers computed above, both in terms of their values and their meanings.
+
+```{solution,eval=FALSE}
+They are fairly close. They both mean the same because they gave us the probability that the length will be between 15 and 25 although the way they got that probability is different.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 2.3.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

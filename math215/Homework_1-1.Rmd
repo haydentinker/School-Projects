@@ -1,0 +1,162 @@
+---
+title: "Homework Assignment 1-1"
+author: "MATH 215"
+abstract: "Welcome to your first homework assignment!  You are working in what is called an `R Notebook`.  This notebook combines text in a markdown format (which allows for basic formatting such as headings, lists, etc) with R code which can be run right inside the notebook.  Follow the instructions below to complete the assignment.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_1-1.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+<!-- Your Assignment Starts Here -->
+
+First let's look at some exercises dealing with basic R commands.  Fill in the chunks marked as a *solution* below, or fill in the *r* chunks as directed in each question below.
+
+* **Problem 1**: What is the output displayed when the following R code is run?  To run this chunk of code, click the *Run* button within the chunk or place your cursor inside it and press *Ctrl+Shift+Enter*.  In the text chunk below, explain why you saw the output you did.
+
+```{r,warning=FALSE}
+3+10+2-4^2+3;
+```
+
+
+```{solution,eval=FALSE}
+
+```
+
+
+* **Problem 2**: Run the following sequence of commands and then explain what it does.
+
+```{r}
+x <- sqrt(100);
+x^3;
+```
+
+```{solution,eval=FALSE}
+
+```
+
+
+* **Problem 3**: Write an R command involving the variable *x* just defined above that sets the variable *y* to the value *30*.
+
+```{r}
+
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Start the interactive R help browser by completing the following steps.  What happened?
+  * Open the *Console* window.
+  * Type in the command "help.start();"
+    
+```{solution,eval=FALSE}
+
+```
+
+
+* **Problem 5**: After typing each of the help-related commands "?mean" and "??mean" in the interactive console, explain what the single question mark and double question mark commands do.
+
+```{solution,eval=FALSE}
+
+```
+
+
+* **Problem 6**: In addition to numerical variables, R can also work with Boolean (true/false) variables.  Define two Booleans, P and Q and initialize one to TRUE and the other to FALSE.  Then have your code chunk display the value of:
+
+    * P and Q
+    * P or Q
+    * not P or not Q
+    * P or Q but not both
+
+```{r}
+
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Flow control is the ability to modify what a program does based on some condition.  Your book mentions three of the flow control statements that exist in R.  The first is the `if-then-else` statement.  Write a chunk of code that assigns a value to the variable *score* and then assigns the variable *grade* to be "A" if the score is 90 or more, "B" if it is between 80 and 90, "C" if it is between 70 and 80, "D" if it is between 60 and 70, and "F" otherwise.  Some of this has been done for you.
+
+```{r}
+score <- 85
+grade <- ""
+if(score >= 90) {
+  grade <- "A"
+# add your code here
+} else {
+  grade <- "F"
+}
+print(grade)
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+* **Problem 8**: The `if-then-else` statement above is an example of a *branching* statement.  Another type of flow control statement is a *looping* statement.  Below is a looping statement that uses a `while` loop.  Guess what output will be produced by this code chunk before you run it, and then comment on how your guess compared with the actual output.
+
+```{r}
+num <- 0
+while (num < 10) {
+  print(paste("Number:",num))
+  num <- num + 2
+}
+```
+
+```{solution,eval=FALSE}
+
+```
+
+
+* **Problem 9**: Write a chunk of code that computes the sum of the prime numbers between 1 and 100.  Hint: A number is prime if no numbers less than 1 or itself divide evenly into the number.  To solve this problem, you should use:
+
+  * Looping with two `while` loops (one inside the other)
+  * A boolean variable that keeps track of whether a given number is prime
+
+```{r}
+sum <- 0
+# Your code goes here
+x<- 0
+print(sum)
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+
+When you save the notebook, an HTML file containing a presentation version of your work will be saved alongside it (click the *Knit* button or press *Ctrl+Shift+K* to preview that HTML file). The preview shows you a rendered HTML copy of the contents of the editor.  It only shows the results for code blocks you have run, however, so you may wish to use the "Run All" command, *Ctrl+Alt+R* before you create the HTML file.
+
+Congratulations! You've finished your first homework assignment.  Run the code below to see your score for the autograded portions of the assignment.
+
+
+```{r}
+.AutograderMyTotalScore()
+```

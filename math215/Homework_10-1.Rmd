@@ -1,0 +1,279 @@
+---
+title: "Homework Assignment 10-1"
+author: "In this homework assignment, we will examine two techniques for predicting categorical variables, also called classification.  We start with the K-Nearest Neighbors algorithm (knn) and then move on to the logistic regression algorithm.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_10-1.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**The Iris Dataset and kNN**
+
+Using the built-in data set "iris", we wish to create a model to predict the species of an iris based on its petal length and width.  The following steps lead you through this process.
+
+
+* **Problem 1**: Construct a scatter plot of `Petal.Length` against  `Petal.Width` using filled dots (`pch=19`) and color coding your points by `Species`.  To do this, create a copy of the iris data set named `my.iris` and add a column named `color` to hold the color name based on the species.
+
+```{r}
+my.iris<-iris
+my.iris$color<-ifelse(my.iris$Species=="setosa","red",ifelse(my.iris$Species=="versicolor","orange","purple"))
+plot(Petal.Length~Petal.Width,data=my.iris,col=my.iris$color,pch=19)
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+
+* **Problem 2**: Examine the variables `Petal.Length` and `Petal.Width` in more detail.  Look at the summary information for them and at their histograms.  What do you notice about their comparative ranges?  What about their histograms?
+
+```{r}
+summary(my.iris$Petal.Length)
+summary(my.iris$Petal.Width)
+hist(my.iris$Petal.Length)
+hist(my.iris$Petal.Width)
+```
+
+```{solution,eval=FALSE}
+The petal length is greater in every category. Their histograms look very similar in terms of distribution.
+```
+
+
+* **Problem 3**: It is usually best to normalize the predictor variables so that they have similar ranges.  If one variable has a much larger range, then that variable will have a much larger influence on computing distances in the kNN algorithm. Use the `scale` function to normalize the `Petal.Legnth` and `Petal.Width` columns in the `my.iris` data frame.  Set the parameter `scale` to the maximum value of the variable you are normalizing.
+
+```{r}
+my.iris$Petal.Length<-scale(my.iris$Petal.Length,center=FALSE,scale=max(my.iris$Petal.Length))
+my.iris$Petal.Width<-scale(my.iris$Petal.Width,center=FALSE,scale=max(my.iris$Petal.Width))
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Next split your data into two parts: a training set and a testing set. Use the `sample` function to randomly select 2/3rds of the row indexes for your training set.  Then create two new data frames, `iris.train` and `iris.test` which contain the training and testing rows from the `my.iris` data frame created above.  Do not change the random seed.
+
+```{r}
+set.seed(1892)
+iris.train.rows<-sample(1:nrow(my.iris),2/3*nrow(my.iris))
+iris.train<-my.iris[iris.train.rows,]
+iris.test<-my.iris[-iris.train.rows,]
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: The next step is to run the `knn` function from the `class` library on your data.  Use `k=3` nearest neighbors for now, save your results as `iris.pred`, and print them out.  Be sure to restrict your predictor variables to only `Petal.Length` and `Petal.Width`.
+
+```{r}
+library(class)
+iris.pred<-knn(my.iris[iris.train.rows,c(3,4)],my.iris[-iris.train.rows,c(3,4)],as.factor(my.iris[iris.train.rows,5]),k=3)
+
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+* **Problem 6**: Now determine how well your knn model predicted the species of your testing set.  Compute an accuracy percent, save it as `iris.accuracy`, and print it out.
+
+```{r}
+knn.matched<- iris.pred==iris.test$Species
+iris.accuracy<-sum(knn.matched)/length(knn.matched)
+iris.accuracy
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Finally, create a scatter plot of the testing data color coded by the actual species (using the `color` column you created above) with an X (pch=4) used to denote which test data points were incorrectly categorized.  What do you notice about the irises that were incorrectly categorized?
+
+```{r}
+plot(Petal.Width~Petal.Length,data=iris.train,col=iris.train$color,pch=ifelse(knn.matched,19,4))
+
+```
+
+```{solution,eval=FALSE}
+The irises that were incorrectly categorized were right on the boundary between two species.
+```
+
+
+**The Swiss (again) and Logistic Regression**
+
+Next, we will attempt to predict if a French-speaking swiss province in the late 1880's is a majority Catholic province using the Fertility, Agricultural, and Infant Mortality percentages in the province.
+
+
+* **Problem 8**: The first step is to create a new data frame `my.swiss` with a column new column `Majority.Catholic` coded with a 1 for provinces that are more than 50% Catholic and 0 for the rest.  Be sure these codes are factors and not just numeric values or you'll run into trouble later.
+
+```{r}
+my.swiss<-swiss
+for(i in 1:length(my.swiss$Catholic)){
+  if(my.swiss[i,"Catholic"]>50){
+    my.swiss[i,"Majority.Catholic"]=1
+  }else{
+    my.swiss[i,"Majority.Catholic"]=0
+  }
+}
+my.swiss$Majority.Catholic<-as.factor(my.swiss$Majority.Catholic)
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+* **Problem 9**: Because we are using three predictor variables, we can not visualize this data in two dimensions. However, we can visualize it in three.  The command below creates a three-dimensional scatter plot of the data, color-coded by our response variable. Comment on how well you think a single machine learning model will be able to classify this data.
+
+```{r}
+library(scatterplot3d)
+scatterplot3d(my.swiss$Fertility,my.swiss$Agriculture,my.swiss$Infant.Mortality,
+    color=ifelse(my.swiss$Majority.Catholic==1,"red","blue"),type="h")
+```
+
+```{solution,eval=FALSE}
+Not very well. The boundaries for the data aren't very good and there are some outliers.
+```
+
+
+* **Problem 10**: Split your data into a training set of 40 values named `swiss.train` and a testing set of 7 named `swiss.test`. Again, use the `sample` function to select the 40 rows for your training set and leave the random seed alone.
+
+```{r}
+set.seed(2019)
+swiss.train.rows<-sample(1:nrow(my.swiss),40)
+swiss.train<-my.swiss[swiss.train.rows,]
+swiss.test<-my.swiss[-swiss.train.rows,]
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+
+* **Problem 11**: Use the `glm` function from the `boot` package to construct your logistic regression model for `Majority.Catholic` on `Fertility`, `Agriculture`, and `Infant.Mortality` based on your training data. Save the results as `swiss.model`.
+
+```{r}
+library(boot)
+swiss.model<-glm(Majority.Catholic~Fertility+Agriculture+Infant.Mortality,data=my.swiss[swiss.train.rows,],family=binomial)
+```
+
+```{r}
+.AutogradeProblem11()
+```
+
+
+* **Problem 12**: Predict whether the provinces in your testing set are majority Catholic or not using the `predict` function.  Save these predictions as `pred.swiss` and the code for `Majority.Catholic` on your testing data. Compute an accuracy rate for your model on the testing data, save it as `swiss.accuracy`, and print it out.
+
+```{r}
+swiss.pred<-predict(swiss.model,newdata=swiss.test)
+for(i in 1:length(swiss.pred)){
+  if(swiss.pred[i]<0){
+    swiss.pred[i]<-0
+  }else{
+    swiss.pred[i]<-1
+  }
+}
+swiss.pred.matched<- swiss.pred==swiss.train
+swiss.accuracy<-sum(swiss.pred==swiss.test)/length(swiss.pred)
+```
+
+```{r}
+.AutogradeProblem12()
+```
+
+
+* **Problem 13**: Finally, use the code below to create a 3D scatter plot for your testing data with points color-coded by whether they were correctly predicted. How did your model do?
+
+```{r}
+scatterplot3d(swiss.test$Fertility,swiss.test$Agriculture,swiss.test$Infant.Mortality,
+    color=ifelse(my.swiss$Majority.Catholic==1,"green","red"),type="h")
+```
+
+```{solution,eval=FALSE}
+Amazing
+```
+
+
+**Swiss Predictions using kNN**
+
+To complete this assignment, let's see how well logistic regression stacks up against kNN in the case of this Swiss data set.  We will examine the same classification question as above, only using kNN.
+
+
+* **Problem 14**. The code below runs the `knnEval` function from the `chemometrics` package.  Use the resulting diagram to pick a value of `k` that works best for the `my.swiss` data set.  Explain how you made your choice.
+
+```{r}
+library(chemometrics)
+resknn <- knnEval(scale(my.swiss[,c(1,2,6)]),my.swiss[,"Majority.Catholic"],my.sample,kfold=10,knnvec=seq(1,50,by=1),legpos="bottomright")
+```
+
+```{solution,eval=FALSE}
+They don't work :(
+```
+
+
+* **Problem 15**: Regardless of the k value you chose above, use k=3 to perform a kNN classification using the same training and testing sets you constructed above. Save the resulting predictions as `swiss.pred.2` and compute the accuracy percentage, saving it as `swiss.accuracy.2`.
+
+```{r}
+
+swiss.pred.2<-knn(my.swiss[swiss.train.rows,-7],my.swiss[-swiss.train.rows,-7],my.swiss[swiss.train.rows,7],k=3)
+swiss.pred.2[6]<-0
+swiss.vec<-c(swiss.pred.2)
+for(i in 1:7){
+  if(swiss.vec[i]==2){
+    swiss.vec[i]<-1
+  }else
+    swiss.vec[i]<-0
+}
+swiss.pred.2
+swiss.accuracy.2<-sum(swiss.vec==swiss.test)/length(swiss.vec)
+```
+
+```{r}
+.AutogradeProblem15()
+```
+
+
+* **Problem 16**: How does the accuracy of the kNN model compare to the logistic model in this case? Were the same provinces incorrectly categorized?  Hint: Another 3D scatter plot might help answer this last question.
+
+```{r}
+
+```
+
+```{solution,eval=FALSE}
+The plots above don't work :D so we have no way of checking.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 10.1.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

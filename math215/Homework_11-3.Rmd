@@ -1,0 +1,210 @@
+---
+title: "Homework Assignment 11-3"
+author: "In this assignment we will make some basic predictions using exponential smoothing and determine their accuracy according to various accuracy metrics.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library(forecast)
+source(here("homework","autograding","Homework_11-3.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Predicting the S&P 500 with Mean Forecasting**
+
+Many people have spent a lot of time trying to predict what the stock market will do next. Now its your turn. The code below loads in a time series that contains the S&P 500 stock market index change ratio each quarter from 1900 through 1996.
+
+```{r}
+stocks.df <- read.csv("http://webwork.wallawalla.edu/courses/math215/data/quarterly-sp-500-index-19001996.csv");
+stocks.ts <- ts(stocks.df$Value,start=c(1900,1),frequency=4)
+```
+
+
+* **Problem 1**: Decompose and this time series, saving the results as `stocks.decomp` and plotting them. Comment on anything you notice about its trend and seasonality.
+
+```{r}
+stocks.decomp<-decompose(stocks.ts)
+plot(stocks.decomp)
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+```{solution,eval=FALSE}
+It doesn't really seem to have a trend. There is some seasonality.
+```
+
+
+* **Problem 2**: Now forecast using using the mean forecasting function `meanf` from the `forecast` package. Save the results of this function in the variable `stocks.forecast.m` and `autoplot` those results.
+
+```{r}
+library(forecast)
+stocks.forecast.m<-meanf(stocks.ts)
+autoplot(stocks.forecast.m)
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Use the `checkresiduals` function to generate measurements and graphs to help in assessing the accuracy of this forecast model for this time series.
+
+```{r}
+checkresiduals(stocks.forecast.m)
+```
+
+```{solution,eval=FALSE}
+It has a very low p value. It isn't normally distrbuted
+```
+
+
+* **Proboem 4**: Compute the root mean square error (RMSE) and mean absolute error (MAE) for your model using the `accuracy` function.  Note that you only need to give it your forecast model as a parameter, not the time series variable as was done in the book.
+
+```{r}
+accuracy(stocks.forecast.m)
+```
+
+
+* **Problem 5**: As a final step in analyzing this forecast model, do cross validation on this time series for the mean forecasting method. The function below is the same as the one given in your book.  Use it to complete this task, saving your result to the variable `stocks.cv.m` and printing it out.
+
+```{r}
+ts_cv_rmse <- function(thets, thefun, h=2, ...) {
+resids <- tsCV(thets,thefun,h=h, ...)
+return(sqrt(mean(resids^2,na.rm=TRUE)))
+}
+```
+
+```{r}
+stocks.cv.m<-ts_cv_rmse(stocks.ts,meanf)
+stocks.cv.m
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+* **Problem 6**: Summarize your results. That is, argue based on the accuracy measures computed above that the mean forecasting model is a good fit for this data or that it is not a good fit for the data.
+
+```{solution,eval=FALSE}
+The rmse that we got was good. So the model is a very good fit for the data.
+```
+
+
+**Predicting the S&P 500 with Double Exponential Smoothing**
+
+Now let's repeat this process using the double exponential smoothing model covered in your book.
+
+
+* **Problem 7**: Use the `holt` function with a parameter of `h=8` (forecast 8 quarters, so 2 years into the future) to create a forecast model.  Save the model as `stocks.forecast.h` and `autoplot` the model.
+
+```{r}
+stocks.forecast.h<-holt(stocks.ts,h=8)
+autoplot(stocks.forecast.h)
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+* **Problem 8**: Run the `checkresiduals` and `accuracy` functions on your model to compute accuracy measures.
+
+```{r}
+checkresiduals(stocks.forecast.h)
+accuracy(stocks.forecast.h)
+```
+
+
+* **Problem 9**: Run our `ts_cv_rmse` function to do cross-validation and compute the mean square error.  Save the results as `stocks.cv.h` and print it out.
+
+```{r}
+stocks.cv.h<-ts_cv_rmse(stocks.ts,holt,h=8)
+stocks.cv.h
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+
+* **Problem 10**: Summarize the results.  Does the double exponential smoothing model give us a better fit than the mean forecasting model did?
+
+```{solution,eval=FALSE}
+Yes the double smoothing model gave us a better fit.
+```
+
+
+**Predicting the S&P 500 with Triple Exponential Smoothing**
+
+Finally, we repeat these steps with a triple exponential smoothing model and repeat.
+
+
+* **Problem 11**: Use the `hw` function to create a forecast model with parameters `h=8` and `seasonal="additive"`.  Save the model as `stocks.forecast.hw` and `autoplot` it.
+
+```{r}
+stocks.forecast.hw<-hw(stocks.ts,h=8,seasonal="additive")
+autoplot(stocks.forecast.hw)
+```
+
+```{r}
+.AutogradeProblem11()
+```
+
+
+* **Problem 12**: Run the `checkresiduals` and `accuracy` functions on your model to compute accuracy measures.
+
+```{r}
+checkresiduals(stocks.forecast.hw)
+accuracy(stocks.forecast.hw)
+```
+
+
+* **Problem 13**: Run our `ts_cv_rmse` function to do cross-validation and compute the mean square error, saving your results as `stocks.cv.hw` and printing them out.
+
+```{r}
+stocks.cv.hw<-ts_cv_rmse(stocks.ts,hw,h=8)
+stocks.cv.hw
+```
+
+```{r}
+.AutogradeProblem13()
+```
+
+
+* **Problem 14**: Summarize the results.  Does the triple exponential smoothing model give us a better fit than the mean or double exponential smoothing forecasting models did?
+
+```{solution,eval=FALSE}
+Yes the triple smoothing model gave us a better fit.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 11.3.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

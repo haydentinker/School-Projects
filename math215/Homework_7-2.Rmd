@@ -1,0 +1,145 @@
+---
+title: "Homework Assignment 7-2"
+author: "In this classwork assignment we will learn to use Markov Chain Monte Carlo methods for Bayesian analysis.  The library below is needed to perform the MCMC process.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library(runjags)
+library(rjags)
+library(MASS)
+source(here("homework","autograding","Homework_7-2.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Loblolly Pines**
+
+The built-in R dataset `Loblolly` contains data on the growth of Loblolly pine trees.  We will use MCMC methods to simulate the joint distribution of means and standard deviations for the heights of 25-year-old pine trees assuming they are normally distributed and using a uniform prior for both the mean and standard deviation.
+
+
+* **Problem 1**: Construct a data frame `loblolly.25` that contains only the 25-year-old trees from the `Loblolly` data set.  Examine this data and give some thought to the range of your uniform priors for the mean and standard deviation of the heights.  Justify your choices.
+
+```{r}
+loblolly.25 <- Loblolly[Loblolly$age==25,]
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 2**: Construct your model (`tree.model`), your list of data (`tree.data`), and your results (`tree.results`) from running the JAGS simulator.  Use the following priors:
+
+  * A uniform distribution with a minimum of 50 and maximum of 70 for the mean
+  * A uniform distribution with a minimum of 12.5 and maximum of 17.5 for the standard deviation
+  
+```{r}
+tree.model <- "model {
+  mu ~ dunif(x,y)                # fill in values for x and y
+  stddev ~ dunif(z,w)            # fill in values for z and w
+  tau <- pow(stddev,-2)
+  for(i in 1:theLength) {
+    samp[i] ~ dnorm(mu,tau)
+  }
+}"
+
+tree.data <- list(
+  samp=loblolly.25$height,
+  theLength=length(loblolly.25$height)
+)
+
+tree.results <- autorun.jags(
+  tree.model,
+  data=tree.data,
+  inits=list(
+    list(.RNG.name="base::Wichmann-Hill",.RNG.seed=1024),
+    list(.RNG.name="base::Wichmann-Hill",.RNG.seed=512),
+    list(.RNG.name="base::Wichmann-Hill",.RNG.seed=256)
+  ),
+  n.chains=3,
+  monitor=c('mu','stddev')
+)
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Display the results of your model both as a table (using the `print` function) and as a pair of histograms (using the `plot`) function.  Then describe the shape of the marginal density you get for the mean and standard deviation.
+  
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 4**: Construct a 95% credible interval for the mean height based on the MCMC results.  Save this in the vector `cred.mean.unif` and print it out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: Construct a 95% credible interval for the standard deviation of the height based on the MCMC results.  Save this in the vector `cred.stdev.unif` and print it out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+* **Problem 6**: Construct a contour plot of the joint density for the mean and standard deviations of the height.  Comment on what combination of mean and standard deviation is most likely.
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+
+** Problem 7**: Repeat the process above using a normally distributed prior for mu with mean 60 and standard deviation 2.   Leave the standard deviation and the random number seeds unchanged. Describe any differences you observe in the posterior distribution of the mean.
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 7.2.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

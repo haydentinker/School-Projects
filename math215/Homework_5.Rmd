@@ -1,0 +1,222 @@
+---
+title: "Homework Assignment 5"
+author: "In this assignment we will again investigate the college scorecard dataset seen in an earlier assignments as we construct various confidence intervals.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_5.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**College Scorecard: Undergraduate Enrollment**
+
+Download the College Scorecard data set and clean it using the following commands.  Note that this can take some time.  If you want to avoid running this every time you restart your notebook, you can add "eval=FALSE" to the header to prevent automatic execution.
+
+```{r,eval=TRUE}
+df <- read.csv("https://webwork.wallawalla.edu/courses/math215/data/Most-Recent-Cohorts-All-Data-Elements.csv",stringsAsFactors=F);
+df$UGDS <- as.numeric(df$UGDS)
+df <- df[!is.na(df$UGDS),]
+```
+
+Then run the following command to set the random number generator seed so that samples you take later in the assignment will always be the same. If you run chunks that use the `sample` function multiple times, it may lead to unexpected results.  You can always "reset" things by running the notebook from the top.
+
+```{r}
+set.seed(2211)
+```
+
+Finally (for our setup), run the code chunk below to create a function that will help us in finding confidence intervals.
+
+```{r}
+# data is a set of sample data, conf is a confidence level (e.g. 95 for 95% confidence)
+ci <- function(data,conf) {
+  sample.mean <- mean(data);
+  standard.error <- sd(data) / sqrt(length(data))
+  critical.value <- qt(1-(1-conf/100)/2,df=length(data)-1)
+  c(sample.mean-critical.value*standard.error,sample.mean+critical.value*standard.error)
+}
+```
+
+
+* **Problem 1**: In your own words, describe what the function above does.
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 2**: Save the mean of the data set to the variable `mean.ugds`.  Then create twenty 95% confidence intervals, each based on a different random sample of 36 institutions in the data.  Save these in a matrix named `my.samples` that you define as having 20 rows and 2 columns.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Run the code below to create a function that will produce a graphical representation of your confidence intervals.  Use this to answer the following questions.
+
+   * In how many confidence intervals is the mean (green dashed line) contained?
+   * Given that these are 95% confidence intervals, how many of the 20 intervals would you expect to contain the mean?
+   * Describe the variability you see in the confidence intervals.  To what do you attribute this?
+   
+
+```{r}
+graph.cis <- function(data,title) {
+  plot(1:20,(data[,2]+data[,1])/2,type="p",xlab="samples",
+     xlim=c(0,21),ylim=c(min(data[,1])-500,max(data[,2])+500),log="",
+     ylab="number undergraduates",main=title)
+  abline(h=mean.ugds,col="green",lty="dashed")
+  segments(x0=1:20,x1=1:20,y0=data[,1],y1=data[,2],col="blue")
+  segments(x0=1:20-0.1,x1=1:20+0.1,y0=data[,2],y1=data[,2],col="blue")
+  segments(x0=1:20-0.1,x1=1:20+0.1,y0=data[,1],y1=data[,1],col="blue")
+}
+
+# This actually produces the graph
+graph.cis(my.samples,"95% Intervals from Samples of Size n=36")
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 4**: Repeat your work from problem 2 using samples of size 150 instead of 36.  Store these samples in a 20 by 2 matrix named `my.large.samples`.  Run the function `graph.cis` on this new matrix of data. Do the same thing for samples of size 500 stored in a matrix called `my.larger.samples`. Use the resulting graphs to answer the following question.  
+
+    * What affect did increasing the sample size have on the width of your confidence intervals?
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem04()
+```
+   
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 6**: Repeat your work again using samples of size 150 but create data for confidence levels of 99%, 95%, and 90%.  Name your data `my.large.samples.99`, `my.large.samples.95`, and `my.large.samples.90` and create them in that order.  Create graphs and use them to answer the following questions.
+
+    * What affect did changing the confidence level have on the width of your intervals?
+    * What affect did changing the confidence level have on the number of intervals that "missed" the mean?
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+**College Scorecard: Predominate Degree**   
+
+In a previous assignment, we investigated the variable PREDDEG (predominate degree) which was a categorical variable classifying institutions as follows:
+
+    0 = not classified
+    1 = predominantly certificate-degree granting
+    2 = predominantly associate's-degree granting
+    3 = predominantly bachelor's-degree granting
+    4 = entirely graduate-degree granting
+    
+* **Problem 7**: Examine the relationship between this variable and total enrollment (UGDS) using a boxplot and describe what you see.
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 8** When a single variable has very different values for major subgroups of a population, we need to be intentional about constructing a representative sample. To investigate categories 1-3 further (we can ignore categories 0 and 4 when looking at undergraduate enrollments), construct a data frame named `ugds.stats` which contains one row for each category and two columns -- one named "mean" containing the mean UGDS within that category and the other named "count" containing the number of institutions in that category.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+* **Problem 9**: When there is a wide range of possible values in a data set with natural subgroups such as this, it is important that our samples be representative of the entire data set.  Examine the data frame above and answer the following questions.
+
+    * What would happen if a random sample of institutions just happened to be chosen entirely from institutions of type 1?
+    * Perform an Internet searches on the term "stratified sample" and describe what this type of sample looks like.
+    * Based on the counts, suggest a reasonable ratio for constructing a stratified sample using institution types.
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 10**: Construct a stratified sample of enrollment counts, 75 from institutions with PREDDEG categories 1, 50 from category 2, and 25 from category 3 (sampling in that order). Call the resulting vector of 150 enrollment counts `stratified.UGDS`.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+
+* **Problem 11** Build a 99%, 95%, and 90% confidence interval based on your more representative sample.  Save these as vectors `stratified.ci.99`, `stratified.ci.95`, and `stratified.ci.90` and print them out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem12()
+```
+
+
+* **Problem 12**: Run the code below to graph the 20 confidence intervals of size 150 created based on a purely random sample earlier and add to them the interval you just created based on your stratified sample. You does your interval based on the stratified sample (in red) compare with the other intervals?  Is it unusually wide, narrow, or fairly typical.  Comment on how this might be related to our sampling method.
+
+```{r}
+graph.cis(my.large.samples.99,"99% Intervals from Stratified Sample")
+segments(x0=21,x1=21,y0=stratified.ci.99[1],y1=stratified.ci.99[2],col="red")
+segments(x0=20.9,x1=21.1,y0=stratified.ci.99[1],y1=stratified.ci.99[1],col="red")
+segments(x0=20.9,x1=21.1,y0=stratified.ci.99[2],y1=stratified.ci.99[2],col="red")
+
+graph.cis(my.large.samples.95,"95% Intervals from Stratified Sample")
+segments(x0=21,x1=21,y0=stratified.ci.95[1],y1=stratified.ci.95[2],col="red")
+segments(x0=20.9,x1=21.1,y0=stratified.ci.95[1],y1=stratified.ci.95[1],col="red")
+segments(x0=20.9,x1=21.1,y0=stratified.ci.95[2],y1=stratified.ci.95[2],col="red")
+
+graph.cis(my.large.samples.90,"90% Intervals from Stratified Sample")
+segments(x0=21,x1=21,y0=stratified.ci.90[1],y1=stratified.ci.90[2],col="red")
+segments(x0=20.9,x1=21.1,y0=stratified.ci.90[1],y1=stratified.ci.90[1],col="red")
+segments(x0=20.9,x1=21.1,y0=stratified.ci.90[2],y1=stratified.ci.90[2],col="red")
+```
+
+```{solution,eval=FALSE}
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 5.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

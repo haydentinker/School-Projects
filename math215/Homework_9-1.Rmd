@@ -1,0 +1,211 @@
+---
+title: "Homework Assignment 9-1"
+author: "In this homework assignment we construct several linear regression models and learn to analyze them.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_9-1.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Washington State City Population vs. Housing Units**
+
+As part of our previous homework assignment, we investigated the correlation between city population and the number of housing units in a sample of cities from Washington state.  In this homework assignment, we will explore that relationship in further detail.  Start by loading the city data into your R environment and cleaning out values with NA's in these two variables.
+
+```{r}
+wa.pop <- read.csv("https://data.wa.gov/api/views/tx5i-i2ja/rows.csv?accessType=DOWNLOAD",stringsAsFactors=TRUE)
+wa.pop <- wa.pop[is.na(wa.pop$Total.Population.2000)==FALSE & is.na(wa.pop$Total.Housing.Units.2000)==FALSE,]
+```
+
+
+* **Problem 1**: The code below creates a linear model (i.e. regression line) for the relationship between total number of housing units and the total population in these cities in 2000 and then plots that line on a scatter plot.  Run it and then comment on the strength and direction of the linear relationship between these variables.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 2**:  Now examine the `summary` of this model and use it to respond to the following questions.
+
+    * What is the $R^2$ value of the model and how does this relate to how well the model fits the data?
+    * What is p-value for the null hypothesis that the slope of the regression line is 0.  What does this value tell us?
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 3**: Use the summary you found in problem 2 above to construct a function named `fn.1` which gives the linear relationship for the data. Then use this function to predict the number of housing units in a city of size 300,000 in 2000. Hint: your function should be linear, meaning it's form is "m * x + b" where m and b are the appropriate coefficients from the model summary found above using all four significant digits.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Recognizing that this data is just a sample from all cities in the state of Washington, we may wish to construct a confidence interval for the slope of the line in the relationship between population and housing units in the entire population of Washington state cities.  This can be done using the `confint` function.  Construct a 95% confidence interval based on this model for the "Total.Population.2000" parameter.  Save it as `conf.1` and print it out.  What does this tell us about the rate of growth in housing units as it relates to city population?
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 5**: The difference between the actual number of housing units and the number predicted by the linear model is called a residual. The residuals for this model are all saved in the variable `model.1$residuals`.  Complete the following tasks with these residuals.
+
+  a. Construct a histogram for the residuals. Relate what you see in this histogram to the number of data points that are above or below the line in our scatter plot.
+  b. Compute the sum of the residuals rounded to 10 decimal places and save it to the variable `sum.1`.  Is this sum surprising?
+  c. Compute the root mean square error for the model and save this to the variable `rmse.1`. Recall that the formula is:
+    $$RMSE = \sqrt{\frac{1}{n}\sum_{i=1}^n \varepsilon_i^2}$$
+  d. Note that this value is in the same units as the dependent variable.  What does the value tell us?
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+**Dealing with Outliers**
+
+You may have noticed that one of the data points on our scatter plot seems to be quite different from the others -- both in terms of its location and in terms of how well it fits in with the model. In the next few problems we will explore this outlier.
+
+
+* **Problem 6**: What is the largest residual in the data set, and which city does it go with?  Save the city name in the variable `city.outlier` and print it out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Should this city be considered an outlier?  Discuss how different it is from the other cities both in terms of population and in how well it matches the linear model.
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 8**: Regardless of your decision above, construct an "Iteratively Re-Weighted Least Squares" regression line for this data using the `rlm` function from the `MASS` package.  Save it as `model.2` and plot both regression lines together with the scatter plot of the data.  How does the line produced by this second model compare to the one produced by the first?
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 9**: This second model lessons the effect of outliers such as Seattle by assigning each value a weight representing how much that value should be considered when producing the model.  These weights are stored in `model.2$w`.  Which cities received a weight of less than 0.05 in the model? Save the city names as a vector `city.low.weights` and print it out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+
+* **Problem 10**: We can use these weights to scale our root mean square error computation according to the formula below.
+
+$$RMSE = \sqrt{\frac{1}{\sum w_i}\sum_{i=1}^n (\varepsilon_i^2 \times w_i)}$$
+
+Save this value in the variable `rmse.2` and print it out.  What does this tell us about model 2 as compared to model 1?
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+**Binary Predictors**
+
+As a final exploration of this data, let's explore the difference between the populations for cities on the west side of the state vs. those on the east side of the state.  The code below sets a new column `side` to either one of two factors, "E" or "W", depending on if a city is east or west of longitude -121.3 (which is approximately the cascade mountain range).
+
+```{r}
+library(stringr)
+wa.pop$side <- as.factor(
+  ifelse(
+    as.numeric(str_match(wa.pop$Location.1,"POINT \\(([^\\s]*) ")[,2]) < -121.3, 
+    "W", "E"
+  )
+)
+```
+
+
+* **Problem 12**: Create a new model called `model.3` which examines the relationship between `Total.Population.2000` and the `side` of the state on which a city lies.  Print out a summary of this model.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem12()
+```
+
+
+* **Problem 13**: Answer the following questions based only on the summary of the model above.
+
+  a. What is the mean population size for cities on the east side of the state (i.e. if sideW is false or 0)?
+  b. What is the difference between the mean population for cities on the west side vs. cities on the east side?
+  c. At which standard significance levels (0.1, 0.05, and/or 0.01) would we reject the claim that the mean populations are equal for cities on the east and west sides of the state?
+  
+```{solution,eval=FALSE}
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 9.1.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

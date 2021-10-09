@@ -1,0 +1,194 @@
+---
+title: "Homework Assignment 4-3"
+author: "In this assignment we will investigate probability using the binomial and normal distributions.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_4-3.tests.R"))
+.AutograderInit()
+
+library(prob)
+library(LaplacesDemon)
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**The Binomial Distribution**
+
+Kyle Lowry, a point guard for the Toronto Raptors NBA basketball team, has a career free throw percent of 79.8%, meaning that he has made 79.8% of the free throw shots he's attempted during an official NBA game.  Assume that his free throw percent is fixed the probability that he will make any future free throw attempt.  
+
+* **Problem 1**: Suppose that Mr. Lowry attempts 13 shots in a given game.  Use R's `dbinom` and/or `pbinom` functions to answer the following questions about this game.
+
+    * What is the probability he makes 9 of the 13 shots?  Save this in the variable `prob.9.of.13`.
+    * How likely is it that Mr. Lowrey will make fewer than 11 free throws? Save this to `prob.fewer.13`.    
+    * What is the expected number of free throws that Mr. Lowry will make?  Save this to `expected.val`.
+    
+```{r}
+```
+
+```{r}
+.AutogradeProblem01()
+```
+    
+    
+* **Problem 2**: Construct a probability histogram using the `barplot` function. Add x-axis labels using `axis(1,0:14)`. Then answer the following questions based on your histogram.
+
+    * Describe the shape of this probability distribution. 
+    * Making a general statement about the likely results when Mr. Lowry has 13 free throw attempts in a game.
+    * Based on your histogram, what is the most likely number of free throws that Mr. Lowry will make?
+    * How is the most likely number of free throws related to the expected value you computed above?
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+    
+* **Problem 3**: Now suppose that Mr. Lowry attempts 450 free throws during this year's NBA regular season.  Answer the following questions.
+
+    * What is the probability he makes 350 of the shots?  Save this in `prob.350.of.450`.
+    * What is the probability he makes at least 350 shots?  Save this in `prob.atleast.350`.
+    * What is the probability he makes between 350 and 375 shots? Save this in `prob.350.to.375`.
+    * How many of the 450 free throw attempts you expect Mr. Lowry to make? Save this in `expected.val.450`.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Now construct a probability histogram using the `barplot` function with the appropriate x-axis labels. Use this histogram to answer the following questions.
+
+    * How does the shape of this histogram compare to the shape of the histogram for a single 13-attempt game?
+    * Does this histogram confirm your computation of the expected value when taking 450 shots?
+    * Aren't you glad you're doing this in R instead of by hand?
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+
+**The Normal Distribution**
+
+The density function for a normal distribution with parameters μ and σ is given below.
+
+$$f(x) = \frac{1}{\sigma\sqrt{2\pi}}e^{\left(\frac{-(x-\mu)^2}{2\sigma^2}\right)} \quad -\infty<x<\infty$$
+
+
+* **Problem 5**: Define this function in R using the function name `f` and recognizing that the function `exp` is used to raise *e* to a given power.  Use the parameters μ=0 and σ=1 for the standard normal distribution and plot your function from x=-5 to x=5.
+    
+```{r}
+```    
+
+```{r}
+.AutogradeProblem05()
+```
+
+* **Problem 6**: R's built-in normal density function is named `dnorm`.  Plot this function on the same interval.  How do the plots compare?
+    
+```{r}
+```  
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 7**: Use the `integrate` function on your normal density `f` to compute the probability that x is in each of the intervals (−1,1), (−2,2), and (−3,3).  Save these (in this order) to a vector named `normal.probs` and print them out.
+    
+```{r}
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+* **Problem 8** Run the command below, which involves R's normal distribution function `pnorm` (cumulative probability).  What do you notice?  Explain what this command does.
+      
+```{r}
+pnorm(1:3) - pnorm(-(1:3))
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 9**: Suppose that the time spent by data analysis students studying for a midterm exam has a normal distribution with a mean of 10 hours and a standard deviation of 1.5 hours. Compute the probability that a randomly selected student studies between 7 and 9 hours in two different ways:
+
+    a. Using the `dnorm` function (you'll need to integrate)
+    b. Using the `pnorm` function (no integration necessary)
+    
+Verify that these two probabilities are equal (at least rounded to 4 decimal places) and save them in `prob.7.to.9`.
+    
+```{r}
+```
+
+```{r}
+.AutogradeProblem09()
+```
+ 
+
+* **Problem 10**: Use the `pnorm` function to compute the following probabilities for the scenario described above.
+
+    * The probability a randomly selected student will study less than 10 hours.  Save this in `prob.lessthan.10`
+    * The probability a randomly selected student will study 12 hours or more.  Save this in `prob.atleast.12`
+    * The probability a randomly selected student studies exactly 11 hours.  Save this in `prob.exactly.11`
+    
+```{r}
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+
+* **Problem 11**: With regard to the probabilities you just computed, answer the following questions.
+
+    a. Why should the probability you got for `prob.lessthan.10` not be a surprise?
+    b. Why is the question about the probability of exactly 11 hours a "trick" question?
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 12**: Determine the range of hours that the middle 95% of students will spend studying. Save this to the vector variable `middle.95` with the smaller value in the first component and the larger value in the second.  Hint: The `qnorm` function may be helpful here.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem12()
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 4.3.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

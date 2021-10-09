@@ -1,0 +1,156 @@
+---
+title: "Homework Assignment 3-1"
+author: "In this assignment we will explore methods for examining the relationship between categorical and continuous variables.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_3-1.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Walla Walla University Class Schedule**
+
+A CSV file containing the winter 2021 class schedule at WWU has been created for your use.Load this data set into R and perform the following.
+
+* **Problem 1**: Create a data frame named `wwu` by loading this [CSV File](https://webwork.wallawalla.edu/courses/math215/data/wwu_w21.csv) containing the winter 2021 class schedule.
+
+```{r}
+wwu <- data.frame(read.csv("https://webwork.wallawalla.edu/courses/math215/data/wwu_w21.csv"))
+```
+
+
+* **Problem 2**: Clean this data set by converting the credits from factors to numeric values and removing any 0-enrollment courses or courses with NA's in the credit count after conversion. Do this with the same data frame name, wwu.
+
+```{r}
+wwu <- wwu[!is.na(as.numeric(wwu$Cr)),]
+wwu$Cr <- as.numeric(wwu$Cr)
+wwu <- wwu[wwu$Enroll.Count > 0,]
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Store the mean enrollment in both general studies and non-general studies courses, as indicated by the GS column, in the variables mean.GS and mean.NoGS respectively.
+
+```{r}
+mean.GS1 <- wwu[wwu$GS=="GS",]
+mean.GS<- mean(mean.GS1$Enroll.Count)
+mean.noGS1 <- wwu[wwu$GS!="GS",]
+mean.noGS <- mean(mean.noGS1$Enroll.Count)
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Find the standard deviation for these two groups and store them in sd.GS and sd.noGS.  
+
+```{r}
+sd.GS<- sd(mean.GS1$Enroll.Count)
+sd.noGS<- sd(mean.noGS1$Enroll.Count)
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: Construct two side-by-side boxplots for this data.
+
+```{r}
+library("ggplot2")
+qplot(GS,Enroll.Count, data=wwu,geom="boxplot")
+
+```
+
+
+* **Problem 6**: You should have observed two outliers in the non-general studies enrollment counts and three in the general studies enrollment counts.  Create a new data frame called wwu.noOutliers that removes these outliers.  Construct the box plots again with this new data frame.
+
+```{r}
+wwu.noOutliers <- wwu[wwu$Enroll.Count<60,]
+qplot(GS,Enroll.Count, data=wwu.noOutliers,geom="boxplot")
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Based on the comparisons of course enrollments conducted above, summarize the relationship between the variables "E.Count" and "GS".  That is, how is the enrollment count in a course at WWU this quarter related to whether that course is a general studies course or not?.
+
+```{solution,eval=FALSE}
+The general studies courses have a higher mean. The sd is also higher. This could be caused by general studies courses being open to more students.
+```
+
+
+* **Problem 8**: Conduct the same analysis (repeating all of the steps above) for the relationship between and Enrollment and campus (CP = College Place, BI = Billings, MI = Missoula, PD = Portland).  Use variables mean.XX and sd.XX for the mean and standard deviation, where XX is the campus code, and use wwu.noOutliers.ByCampus for the name of the data frame that has campus-specific outliers removed.
+
+```{r}
+CPEnroll <- wwu[wwu$Campus=="CP",]
+mean.CP <- mean(CPEnroll$Enroll.Count)
+sd.CP <- sd(CPEnroll$Enroll.Count)
+
+BIEnroll <- wwu[wwu$Campus=="BI",]
+mean.BI <- mean(BIEnroll$Enroll.Count)
+sd.BI <- sd(BIEnroll$Enroll.Count)
+
+MIEnroll <- wwu[wwu$Campus=="MI",]
+mean.MI <- mean(MIEnroll$Enroll.Count)
+sd.MI <- sd(MIEnroll$Enroll.Count)
+
+PDEnroll <- wwu[wwu$Campus=="PD",]
+mean.PD <- mean(PDEnroll$Enroll.Count)
+sd.PD <- sd(PDEnroll$Enroll.Count)
+
+
+wwu.noOutliers.byCampus <- wwu[(wwu$Campus=="CP" & wwu$Enroll.Count < 60) |
+(wwu$Campus=="BI") |
+(wwu$Campus=="MI") |
+(wwu$Campus=="PD" & wwu$Enroll.Count < 40),]
+
+qplot(Campus, Enroll.Count,data=wwu.noOutliers.byCampus, geom="boxplot")
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+* **Problem 9**: Describe the relationship between the size of a WWU class in Winter of 2021 and the campus on which the class occurs.
+
+```{solution,eval=FALSE}
+The portland campus has the highest average. College place in general has the biggest size of classes. However the number of classes between each campus is not the same.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 3.1.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

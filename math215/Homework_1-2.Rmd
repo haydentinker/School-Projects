@@ -1,0 +1,193 @@
+---
+title: "Homework Assignment 1-2"
+author: "MATH 215"
+abstract: "In this assignment we will use vectors, subsetting, and functions to investigate one of R's built-in data sets.  For each problem below, write code in the provided code chunk and then answer the question (when appropriate) in the text chunk that follows.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_1-2.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+
+**Warm-up Exercises**
+
+The following exercises cover the basics of working with vectors of vales in R.  Run each code block and then write the answer to the question posed in the *solution* block below.  In some problems, you will be asked to write code and then have your answer checked using an autograder.
+
+
+* **Problem 1**: The four commands below create vectors *v.1*, *v.2*, *v.3*, and *v.4*. After running this code, examine these vectors in the global environment and explain what each of the commands does.
+
+```{r}
+v.1 <- 1:5
+v.2 <- c(9,9,3,2,4)
+v.3 <- numeric(5)
+v.4 <- seq(6,20,2)
+```
+
+```{solution,eval=FALSE}
+V.1 will make a vector of the numbers 1 to 5
+V.2 Made a vector of the numbers 
+V.3 Made a vector of 5 0s
+V.4 Made a vector of the numbers 6 to 20 with increments of 2
+
+```
+
+
+* **Problem 2**: What is the difference between the following two commands?
+
+```{r}
+v.1 + v.2
+sum(v.1,v.2)
+```
+
+```{solution,eval=FALSE}
+The v.1 + v.2 will add the vectors together for example the first spot in v.1 will be added with the first in v.2. The second command adds all the numbers in the vectors together.
+```
+
+
+* **Problem 3**: Write a function named `is.prime` that takes a single number as an argument and returns TRUE if the number is prime and FALSE if it is not prime.  The second code block below determine which numbers between 2 and 100 are prime.
+
+```{r}
+is.prime <- function (x){
+  counter <- 2
+  while (counter < x){
+    if(x %% counter == 0){
+      return (FALSE);
+    }
+    counter <- counter + 1
+  }
+  return (TRUE);
+}
+```
+
+```{r}
+sapply(2:100,is.prime)
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Write a single line of R code that uses your `is.prime` function to create a vector containing the prime numbers between 2 and 10 and then print it out.  Call this vector *small.primes*. Hint: build on the `sapply` code above.
+
+```{r}
+primeBool <- sapply(2:10,is.prime)
+small.primes <- (2:10)
+small.primes[c(primeBool)]
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+**The AirPassengers Data Set**
+
+The AirPassengers built in dataset contains the monthly total of international airline passengers *from January of 1949 through December of 1960*.  Use a single R command to complete the following tasks using this dataset.  When asked to print out a variable's contents, you may use a second line.
+
+
+* **Question 5**: Use the help system to find out a little more about this built-in data set.  What do the values in the data set represent?
+
+```{solution,eval=FALSE}
+The classic Box & Jenkins airline data. Monthly totals of international airline passengers, 1949 to 1960
+```
+
+
+* **Question 6**: While we can treat this dataset as a vector, what is its actual data type?  How many values does it contain? Hint: try using the `str` R function.
+
+```{r}
+str(AirPassengers)
+```
+
+```{solution,eval=FALSE}
+Time Series 1 to 144
+```
+
+
+* **Question 7**: Construct a vector named `in.1950` that contains the number of passengers in the 12 months of the year 1950.  Print out the values of this vector.
+
+```{r}
+in.1950 <- AirPassengers[13:24]
+print (in.1950)
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+* **Question 8**: Compute the total number of passengers who flew during 1950 using an R command and your vector `in.1950` above.  Save this value in the variable `total.1950` and print it out.
+
+```{r}
+total.1950 <- sum(in.1950)
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+* **Problem 9**: Construct a vector named `in.Dec` that contains the number of passengers in December of each year.  Use the R function `seq` to help you with subsetting.
+    
+```{r}
+in.Dec <- AirPassengers
+in.Dec<-in.Dec [c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE)]
+print(in.Dec)
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+
+* **Problem 10**: What was the average number of passengers who flew during Decembers in this time interval?  Save this in the variable `avg.Dec` and print it out.
+
+```{r}
+avg.Dec <- mean(in.Dec)
+print (avg.Dec)
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+
+7. Use subseting to create a vector that contains all values from the AirPassengers that are greater than 500.  Print out your list.
+
+```{r}
+greater.500 <- AirPassengers[AirPassengers>500]
+print(airPassengerVec)
+```
+
+```{r}
+.AutogradeProblem11()
+```
+
+
+That's the end of homework assignment 1.2.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

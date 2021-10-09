@@ -1,0 +1,174 @@
+---
+title: "Homework Assignment 11-4"
+author: "In this homework assignment, we will look at our final tool for time series forecasting, the ETS and state space model.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library(forecast)
+source(here("homework","autograding","Homework_11-4.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Souvenir Sales**
+
+We will be suing the data set referenced below, which contains monthly sales data for souvenirs in a certain tourist town from January 1995 through December 2001.  The commands below will load in this data and create a time series for us.
+
+```{r}
+sv.df <- read.csv("http://webwork.wallawalla.edu/courses/math215/data/SouvenirSales.csv",stringsAsFactors=F)
+sv.ts <- ts(sv.df$Sales,start=c(1995,1),frequency=12)
+```
+
+
+* **Problem 1**: Let's first get a sense of the components of this time series. Decompose it, saving the results to the variable `sv.decomp` and plotting them.  Comment on anything you observe.
+
+```{r}
+sv.decomp<-decompose(sv.ts)
+plot(sv.decomp)
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+```{solution,eval=FALSE}
+Seems to have a positive trend and seasonality.
+```
+
+
+* **Problem 2**: In order to explore how effectively we can forecast with this data, we will first split it into two pieces: a series called `sv.train.ts` which contains all of the data up through (and including) December 2000, and a series called `sv.test.ts` which contains the last year of data, from January 2001 through December 2001.  Use the `window` function to do this.  Then plot the two time series on the same graph, using color and/or line type to distinguish between them.  Hint: use the `plot` and `lines` functions.
+
+```{r}
+sv.train.ts<-window(sv.ts,end=c(2000,12))
+sv.test.ts<-window(sv.ts,start=c(2001,1))
+plot(sv.train.ts,xlim=c(1995,2002))+
+  lines(sv.test.ts,col="red",lty=2)
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Now use the `ets` function to create an object named `sv.ets` for the training data and print out a summary of that object.  Answer the following questions based on this summary.
+
+   * Which method (by name) did the ets function use?
+   * What is the root mean squared error?
+   * How does this error compare with the magnitude of values in the dataset?
+
+```{r}
+sv.ets<-ets(sv.train.ts)
+summary(sv.ets)
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+```{solution,eval=FALSE}
+It used the M A M method. The RMSE is 1805.02. It is kind of big.
+```
+
+
+* **Problem 4**: Next, forecast the values of the time series for the 2001 year based on this ETS model.  Save your forecast as `sv.forecast` and then plot the results using the `autoplot` function.
+
+```{r}
+sv.forecast<-forecast(sv.ets,h=12)
+autoplot(sv.forecast)
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: As your book mentioned, the ETS function automatically selects the model which minimizes one measure of error.  That means that giving it a different view of the data can lead to a different model selection.  Repeat the steps in #3 and #4 above, but this time train the model with data from January of 1998 through December 2000.  Does the selected model change?  How do the forecasts change?
+
+```{r}
+sv.train.ts.2<-window(sv.ts,start=c(1998,1),end=c(2000,12))
+sv.ets.MNM<-ets(sv.train.ts.2)
+sv.forecast.MNM<-forecast(sv.ets.MNM)
+autoplot(sv.forecast.2)
+```
+
+```{solution,eval=FALSE}
+It is pretty similar
+```
+
+
+* **Problem 6**: Using the parameter `model="ZZZ"` you can force the ETS function to select a particular model.  You've already created forecasts for two of the six models mentioned below.  Now create forecasts (with the `forecast` function) for the other four models for the January 2001 through December 2001 time period. After running this code, you should have six forecast objects named `sv.forecast.xyz` where where x, y, and z are M, A, or N as appropriate.
+
+   * Multiplicative Error, Additive Trend, Multiplicative Seasonality
+   * Multiplicative Error, No Trend, Multiplicative Seasonality
+   * Multiplicative Error, Multiplicative Trend, Multiplicative Seasonality
+   * Multiplicative Error, Additive Trend, Additive Seasonality
+   * Additive Error, Additive Trend, Additive Seasonality
+   * Additive Error, No Trend, Additive Seasonality
+
+```{r}
+sv.ets.MMM<-ets(sv.train.ts.2,model="MMM")
+sv.ets.MAM<-ets(sv.train.ts.2,model="MAM")
+sv.ets.MAA<-ets(sv.train.ts.2,model="MAA")
+sv.ets.AAA<-ets(sv.train.ts.2,model="AAA")
+sv.ets.ANA<-ets(sv.train.ts.2,model="ANA")
+sv.forecast.MMM<-forecast(sv.ets.MMM)
+sv.forecast.MAM<-forecast(sv.ets.MAM)
+sv.forecast.MAA<-forecast(sv.ets.MAA)
+sv.forecast.AAA<-forecast(sv.ets.AAA)
+sv.forecast.ANA<-forecast(sv.ets.ANA)
+
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Plot all of these forecasts on the same plot together with the actual testing data.  Accomplish this using the `plot` and `lines` functions and accessing a window of the `$mean` data in each forecast model.  Use a different color and/or line type to distinguish the models. Hint: set the `ylim` parameter in your initial plot so that all of each forecast shows up in your graph.
+
+```{r}
+
+autoplot(sv.test.ts,series="Actual",col="black") +
+  autolayer(sv.forecast.ANA$mean,series="ANA") +
+  autolayer(sv.forecast.AAA$mean,series="AAA") +
+  autolayer(sv.forecast.MNM$mean,series="MNM") +
+  autolayer(sv.forecast.MAA$mean,series="MAA") +
+  autolayer(sv.forecast.MAM$mean,series="MAM") +
+  autolayer(sv.forecast.MMM$mean,series="MMM")
+```
+
+
+* **Problem 8**: Which of the models above worked reasonably well, and which did not
+
+```{solution,eval=FALSE}
+The MMM and MAM models fit it pretty well. The rest were ok except for AAA which was terrible.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 11.4.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

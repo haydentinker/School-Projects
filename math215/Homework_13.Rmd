@@ -1,0 +1,227 @@
+---
+title: "Homework Assignment 13"
+author: "In this assignment, we will visualize and impute missing values in a data set with which we have previously worked.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_13.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Pulp Quality -- Visualizing Missing Data**
+
+Pulp quality is measured by the lignin content remaining in the pulp, called the Kappa number. The data set below can be used to identify which variables in the process influence the Kappa number and if it can be predicted accurately enough for an inferential sensor application.
+
+```{r}
+df <- read.csv("https://openmv.net/file/kamyr-digester.csv",stringsAsFactors=F)
+df <- df[c(2,4,8,9,10,15,17,19,21)]
+```
+
+
+* **Problem 1**: First let's use the `md.pattern` function from the `mice` library to visualize the missing data.  Save the results of the `md.pattern` function call to the variable `df.pattern` and `View` the data frame.  
+
+```{r}
+library(mice)
+df.pattern<-md.pattern(df)
+View(df.pattern)
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+
+* **Problem 2**: Next, use the `aggr` function from the `VIM` library to visualize the missing data.  Based on this output and theat above, what patterns do you observe in the missing data?
+
+```{r}
+library(VIM)
+aggr(df)
+```
+
+```{solution,eval=FALSE}
+The majority of rows (87%) have complete data.  The Y.Kappa column is complete, all other columns have some missing data. By far the most missing data is in the BF.CMraito and UCZAA columns.
+```
+
+
+**Handling Missing Data: Unsophisticated Methods**
+
+We will now try several of the simple (but unsophisticated methods) for dealing with missing data mentioned in your text.
+
+
+* **Problem 3**: Let's first do some complete case analysis.  That is, let's ignore the rows with missing data all together.  Construct a kitchen-sink regression model for the *Y.Kappa* variable on all other variables.  Use the `na.action=na.omit` parameter in the `lm` function to omit those rows with missing data.  Save your model as `model.1` and print out a summary.
+
+```{r}
+model.1<-lm(Y.Kappa~.,data=df,na.action=na.omit)
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Next we will use mean substitution to handle some of the missing values. Create a copy of the data frame named 'df.2' and replace the missing entries for the variables *T.lowerExt.2*, *WhiteFlow.4*, *Lower.HeatT.3*, *ChipMass.4*, *BlackFlow.2*, and *SteamHeatF.3* with the mean of the non-missing values for the respective variable. Then construct and summarize a model as above, saving it as `model.2`. 
+
+```{r}
+df.2<-df
+
+
+missing.rows<-is.na(df.2$T.lowerExt.2)
+low.inc.mean<-mean(df.2$T.lowerExt.2,na.rm=TRUE)
+df.2$T.lowerExt.2[missing.rows]<-low.inc.mean
+
+missing.rows<-is.na(df.2$WhiteFlow.4)
+low.inc.mean<-mean(df.2$WhiteFlow.4,na.rm=TRUE)
+df.2$WhiteFlow.4[missing.rows]<-low.inc.mean
+
+missing.rows<-is.na(df.2$Lower.HeatT.3)
+low.inc.mean<-mean(df.2$Lower.HeatT.3,na.rm=TRUE)
+df.2$Lower.HeatT.3[missing.rows]<-low.inc.mean
+
+missing.rows<-is.na(df.mean$ChipMass.4)
+low.inc.mean<-mean(df.mean$ChipMass.4,na.rm=TRUE)
+df.mean$ChipMass.4[missing.rows]<-low.inc.mean
+
+missing.rows<-is.na(df.2$ChipMass.4)
+low.inc.mean<-mean(df.2$ChipMass.4,na.rm=TRUE)
+df.2$ChipMass.4[missing.rows]<-low.inc.mean
+
+missing.rows<-is.na(df.2$BlackFlow.2)
+low.inc.mean<-mean(df.2$BlackFlow.2,na.rm=TRUE)
+df.2$BlackFlow.2[missing.rows]<-low.inc.mean
+
+missing.rows<-is.na(df.2$SteamHeatF.3)
+low.inc.mean<-mean(df.2$SteamHeatF.3,na.rm=TRUE)
+df.2$SteamHeatF.3[missing.rows]<-low.inc.mean
+
+model.2<-lm(Y.Kappa~.,data=df,na.action=na.omit)
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: Finally, use the slightly more sophisticated approach (although still not the one your author recommends) of applying linear regression to predict missing values of the variables *BF.CMratio* (column 2) and *UCZAA* (column 4).  The process you should follow for both variables is:
+
+  a. Get a list of the rows with missing values for the variable
+  b. Build a kitchen-sink regression model for the variable using only the rows from df.2 that are not missing data and excluding the column with the other variable we've yet to fill in (i.e. when predicting values for *BF.CMratio*, exclude the column *UCZAA*).
+  c. Use that model to predict the values of the variable you're working with on the rows where it is missing.
+  d. Fill in the missing values of that variable in the data frame `df.2`.
+
+```{r}
+df.3<-df.2[,-4]
+missing.rows<-is.na(df.3$BF.CMratio)
+missing.model<-lm(BF.CMratio~.,data=df.3[!missing.rows,],na.action = na.omit)
+
+df.2$BF.CMratio[missing.rows]<-predict(missing.model,newdata=df.3[missing.rows,])
+
+df.3<-df.2[,-2]
+missing.rows<-is.na(df.3$UCZAA)
+missing.model<-lm(UCZAA~.,data=df.3[!missing.rows,],na.action = na.omit)
+
+df.2$UCZAA[missing.rows]<-predict(missing.model,newdata=df.3[missing.rows,])
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+* **Problem 6**: Now construct the same kitchen-sink regression model for the variable *Y.Kappa* using the data in `df.2`.  How do the three regression models compare with each other?
+
+```{r}
+model.3<-lm(Y.Kappa~.,data=df.2)
+plot(model.1)
+plot(model.2)
+plot(model.3)
+```
+
+
+```{solution,eval=FALSE}
+Model 1 and Model 2 look very similar and the real differences come in when you compare them to model 3. We think that model 3 did a bit better of a job.
+```
+
+
+**Multiple Imputation**
+
+Finally, let's make use of the recommended method of multiple imputation to fill in the missing data.
+
+
+* **Problem 7**:  First, create the imputed data set from the original data frame `df` using the `mice` function with the `printFlag` set to false, `seed=1892`, and `m=10`.  Save the output as `df.imputed` and use the `print` function to display it.  What method was used to impute values for each variable?
+
+```{r}
+df.imputed<-mice(df,printFlag=FALSE,seed=1892,m=10)
+print(df.imputed)
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+```{solution,eval=FALSE}
+The pmm method was used to impute the variables
+```
+
+
+* **Problem 8**: Now visualize the imputed data set using both the `plot` and `densityplot` functions.  What does this tell you?
+
+```{r}
+plot(df.imputed)
+densityplot(df.imputed)
+```
+
+```{solution,eval=FALSE}
+The density plots were all over the place. Some looked close but others were fairly off. The plots were fairly spread out which is really good.
+```
+
+
+* **Problem 9**: Finally, run our regression kitchen-sink regression for *Y.Kappa* on each imputed data set and then pool those models with the `pool` function (saving the output as `model.pooled`) and the `pool.r.squared` function (saving the output as `r.squared.pooled`).  Print out a summary of your pooled model and print the pooled R^2 value.  How does this regression model compare to the ones constructed earlier?
+
+```{r}
+
+imputed.model<-with(
+  df.imputed,
+  lm(Y.Kappa~BF.CMratio+T.lowerExt.2+UCZAA+WhiteFlow.4+Lower.HeatT.3+ChipMass.4+BlackFlow.2+SteamHeatF.3)
+)
+model.pooled<-pool(imputed.model)
+r.squared.pooled<-pool.r.squared(imputed.model)
+summary(model.pooled)
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+```{solution,eval=FALSE}
+The r^2 value is better in the pooled.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 13.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

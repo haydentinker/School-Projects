@@ -1,0 +1,221 @@
+---
+title: "Homework Assignment 11-2"
+author: "In this homework assignment we will examine autocorrelation and smoothing timeseries.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_11-2.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Autocorrelation**
+
+If you haven't done so in a while, clean up your R environment by clicking the small broom icon in the Environment tab in the top-right pane.  That will get rind of your previous variables so that we can continue our exploration of the monthly demand for gasoline in Ontario, CA and tree rings in Oregon with a clean slate.
+
+```{r}
+# first the gas
+gas.df <- read.csv("http://webwork.wallawalla.edu/courses/math215/data/monthly-gasoline-demand-ontario-.csv",stringsAsFactors=F)
+gas.ts <- ts(gas.df$Gasoline.Demand,start=c(1960,1),frequency=12)
+
+# next the trees
+trees.df <- df.tree <- read.csv("http://webwork.wallawalla.edu/courses/math215/data/years-15011982-oregon-usa.csv",stringsAsFactors=F)
+trees.ts <- ts(trees.df$Ring.Width,start=1501)
+```
+
+
+* **Problem 1**: Our first step in this process is to plot the autocorrelation function using the `ggAcf` function from the `forecast` library. Save the results as gas.acf and trees.acf and display them to see the graphs.  Do this for both time series and comment on what the correlogram tells you.
+
+```{r}
+library(forecast)
+gas.acf<-ggAcf(gas.ts)
+trees.acf<-ggAcf(trees.ts)
+ggAcf(gas.ts)
+ggAcf(trees.ts)
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+```{solution,eval=FALSE}
+The gas has all positive correlation and trees has some negative but it mostly positive.
+```
+
+
+* **Problem 2** Use the `Box.test` function with the `type="Ljung-Box"` on both of these time series to test the null hypothesis that the series is *not* serially correlated.  What do you conclude about each time series?
+
+```{r}
+Box.test(trees.ts,type="Ljung-Box")
+Box.test(gas.ts,type="Ljung-Box")
+```
+
+```{solution,eval=FALSE}
+We reject the null
+```
+
+
+**Differencing**
+
+Your book mentions the concept of making a time series stationary using a technique called differencing.  We will do a quick survey of this technique on the gasoline demand data.
+
+
+* **Problem 3**: First plot the gas time series below for reference.  Use the `autoplot` function to accomplish this.
+
+```{r}
+autoplot(gas.ts)
+```
+
+
+* **Problem 4**: Next create what is called a "lag-1 first difference" by subtracting the previous value of the time series from the next value along the whole series.  Recall that the `diff` function with a parameter of `lag=1` can accomplish this.  Save the results as `gas.ts.lag1` and `autoplot` them.
+
+```{r}
+gas.ts.lag1<-diff(gas.ts,lag=1)
+autoplot(gas.ts.lag1)
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: What happens to the trend, seasonality, and error in the lag-1 graph above?  In particular, where is the "center" of this new time series?
+
+```{solution,eval=FALSE}
+The trend was flattened but you can still see the seasonality. 
+```
+
+
+* **Problem 6**: We can suppress the 12-month seasonality with a "lag-12" time series.  This will subtract from each value the number 12 places previous to it. Create a lag-12 time series for the gas data and save it in `gas.ts.lag12`. Plot it and comment on how trend, seasonality, and error are affected relative to the original time series plot.
+
+```{r}
+gas.ts.lag12<-diff(gas.ts,lag=12)
+autoplot(gas.ts.lag12)
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+```{solution,eval=FALSE}
+Seasonality seems to have no pattern and the trend is still missing.
+```
+
+
+* **Problem 7**: Now lets combine these two differences by doing a lag-1 difference on the lag-12 difference you created above.  Name this new time series `gas.lag12.1` and plot it.  Comment on what you see.
+
+```{r}
+gas.ts.lag12.1<-diff(gas.ts.lag12,lag=1)
+autoplot(gas.ts.lag12.1)
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+```{solution,eval=FALSE}
+Higher frequency as time goes on and it wavers.
+```
+
+
+**Smoothing**
+
+As your author suggests, smoothing a time series can help to remove some of the random irregularity that makes it hard to detect trends.  Let's try this with the tree ring data, which our test above suggested did have serial correlation and thus some non-random behavior.
+
+
+* **Problem 8**: Perform a simple moving average smoothing on the tree ring data with the `SMA` function from the `TTR` package using 5-, 10-, and 25-year windows. Save these as `trees.ts.sma.5`, `trees.ts.sma.10`, and `trees.ts.sma.25` and plot the original series and your smoothed series.
+
+```{r}
+library(TTR)
+trees.ts.sma.5<-SMA(trees.ts,n=5)
+trees.ts.sma.10<-SMA(trees.ts,n=10)
+trees.ts.sma.25<-SMA(trees.ts,n=25)
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+* **Problem 9**: What do you observe in the progression of these four graphs?
+
+```{solution,eval=FALSE}
+As n increases the graph becomes more smooth. 
+```
+
+
+* **Problem 10**: Capitalizing on what you may have noticed above, impose a frequency of 60 on the 25-year smoothed time series. This should come close to matching the seasonal pattern you observed above.  Save this new time series as `trees.ts.sma` and then save a decomposition of the time series as `trees.ts.sma.decomp`.  Plot your decomposition and an ACF plot and observe the seasonality in both.
+
+```{r}
+trees.ts.sma<-ts(trees.ts.sma.25,frequency=25)
+trees.ts.sma.decomp<-decompose(trees.ts.sma)
+autoplot(trees.ts.sma)
+autoplot(trees.ts.sma.decomp)
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+
+* **Problem 11**: Shifting gears to the gasoline demand data, create three exponentially smoothed time series using the `ses` function with parameters of `alpha=0.667`, `alpha=0.333`, and `alpha=0.1`.  Save these as `gas.ts.ses6`, `gas.ts.ses3`, and `gas.ts.ses1` and plot the original time series followed by the fitted data from each of the smoothed series (e.g. `gas.ts.ses6$fitted`) with the `autoplot` function.
+
+```{r}
+gas.ts.ses.6<-ses(gas.ts,alpha=0.667)
+autoplot(gas.ts)+autoplot(ses(gas.ts,alpha=0.667)$fitted)
+gas.ts.ses.3<-ses(gas.ts,alpha=0.333)
+autoplot(gas.ts)+autoplot(ses(gas.ts,alpha=0.333)$fitted)
+gas.ts.ses.1<-ses(gas.ts,alpha=0.1)
+autoplot(gas.ts)+autoplot(ses(gas.ts,alpha=0.1)$fitted)
+```
+
+```{r}
+.AutogradeProblem11()
+```
+
+
+* **Problem 12**: What do you notice about the progression of plots above?
+
+```{solution,eval=FALSE}
+It wavers less.
+```
+
+
+* **Problem 13**:  Finally, let's use our smoothing model to actually forecast the demand for gasoline in 1976. Use the `autoplot` function with the `gas.ts.ses.6` model created above.  What does it predict will happen, and what do you think the colored areas mean?
+
+```{r}
+autoplot(gas.ts.ses.6)
+```
+
+```{solution,eval=FALSE}
+The color represents the prediction and the different colors represent confidence intervals.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 11.2.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

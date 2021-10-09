@@ -1,0 +1,185 @@
+---
+title: "Homework Assignment 6-2"
+author: "In this assignment we will use built-in R functions to test hypotheses about single means.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_6-2.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Body Temperature**
+
+Suppose that the body temperature (in degrees Fahrenheit) of 52 randomly chosen healthy adults is measured, with the following summary data.
+
+    * mean:  mu = 98.2846
+    * sample size: n = 52
+    * standard deviation: s = 0.6824
+
+Does this provide significant evidence that the adult body temperature is less than the commonly cited 98.6 degrees Fahrenheit?  Complete the following to investigate this question.
+
+* **Problem 1**:  What assumptions must you make in order to conduct a T-test for the average body temperature of adults using this data?
+
+```{solution,eval=FALSE}
+Assume it's a normal distribution
+```
+
+
+* **Problem 2**: What are your hypotheses for this test?
+
+```{solution,eval=FALSE}
+Null: The average adult body temp is greater or equal to 98.6 F
+Alternative: The average adult body temp is less than 98.6 F
+```
+
+
+* **Problem 3**: Recall that the T-test statistic for a single-sample mean is:
+
+$$T = \frac{\overline{x}-\mu_0}{s/\sqrt{n}}$$
+where $\mu_0$ is the hypothesized population mean.  Use this formula to compute the test statistic for this sample under the null hypothesis that the population mean is 98.6 degrees Fahrenheit.  Store this test statistic in the variable `T` and print it out.
+
+```{r}
+T<- (98.2846-98.6)/(0.6824/sqrt(52))
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: What is the p-value for your test statistic?  Use the `pt` function and the variable `T` computed above. Remember that the degrees of freedom is one less than the sample size.  Save your p-value as `p` and print it out.
+
+```{r}
+p<- pt(T,df=51)
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**. What conclusion do you reach?
+
+```{solution,eval=FALSE}
+Our data was very significant because the p-value is 0.008
+So we reject the null
+```
+
+
+**WWU Class Schedule**
+
+What is the average class size at WWU?  We will use the winter quarter 2021 and the T-distribution to help answer this question.
+
+
+* **Problem 6**: First load the data and remove any classes with 0 enrollment.  Recall that the data can be found at [this URL](https://webwork.wallawalla.edu/courses/math215/data/wwu_w21.csv).
+   
+```{r}
+wwu<- read.csv("https://webwork.wallawalla.edu/courses/math215/data/wwu_w21.csv")
+wwu<-wwu[wwu$Enroll.Count!=0,]
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Next, find the average enrollment count (Enroll.Count variable) for all classes in the data frame.  Save this mean as `x_bar` and print it out.
+
+```{r}
+x_bar <- mean(wwu$Enroll.Count)
+x_bar
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+* **Problem 8**: Test the claim that MATH classes have a different enrollment than the average WWU class at the 0.01 significance level using this quarter as a sample and assuming that the average is as computed above.  The three step process is:
+
+    * State your hypotheses  (in the first blank)
+    * Use `t.test` to compute the p-value (in the second blank -- save your results in the variable `math.results` and print them)
+    * State your conclusion (in the last blank)
+
+```{solution,eval=FALSE}
+Null: The classes have the same enrollment count 
+Alternative: The math classes have different enrollment counts
+```
+
+```{r}
+math.results <- t.test(wwu$Enroll.Count[wwu$Subject=="MATH"],mu=x_bar,alternative = "two.sided")
+math.results
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+```{solution,eval=FALSE}
+We fail to reject the null.
+```
+
+
+* **Problem 9**: Run a similar test of the claim that lower division classes (course number of 100-299) have a higher enrollment than the average WWU class.  The course number is found in the column `Wtr.21` in the `wwu` data frame.  Use these same three steps and a 0.01 significance level.  Save your results to the variable `level.results` and print them out.
+
+```{solution,eval=FALSE}
+Null: The lower division classes have the same or less than the average
+Alternative: The lower division classes have more than the average
+```
+
+```{r}
+wwu[wwu$Wtr.21<=299&wwu$Wtr.21>=100,]
+level.results <- t.test(wwu$Enroll.Count[wwu$Wtr.21<=299&wwu$Wtr.21>=100],mu=x_bar,alternative = "greater")
+level.results
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+```{solution,eval=FALSE}
+We reject the null
+```
+
+
+* **Problem 10**: The t-test should only be used if we assume the enrollment counts are normally distributed.  Is this a reasonable assumption?  Visualize this data to answer the question.  Why can we use the t-test anyway in these examples?
+
+```{r}
+library(car)
+qqPlot(wwu$Enroll.Count)
+barplot(table(wwu$Wtr.21))
+```
+
+```{solution,eval=FALSE}
+It doesn't look normal but since we are using the t.test it doesn't matter.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 6.2.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

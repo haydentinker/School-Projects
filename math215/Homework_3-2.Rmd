@@ -1,0 +1,112 @@
+---
+title: "Homework Assignment 3-2"
+author: "In this assignment we will explore the relationship between two categorical variables.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_3-2.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Racial Profiling Data: Sex and Searched**
+
+The racial profiling data set contains information regarding traffic stops in the city of Austin, TX.  Load this data set into R and use it to complete the following tasks to analyze the relationship between the sex of an individual (in the variable sex) and whether that person was searched (person_searched with values "NO = 2" and "YES = 1")
+
+* **Problem 1**: Create a data frame named `df` by loading this [CSV file](https://data.austintexas.gov/resource/tqet-vty2.csv) containing racial profiling data from the city of Austin, TX.
+
+```{r}
+```
+
+
+* **Problem 2**: Construct a contingency table (in counts) for these two variables with rows corresponding to an individuals sex and columns to whether they were searched.  Save it in a variable named `sex.vs.searched` and display the results.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Compute the probabilities for this contingency table both by row and by column.  That is, create a table prob.by.row that  contains the probability an individual of each gender will be searched or not, and another prob.by.col that contains the probabilities a person searched will be of each gender.  Print the tables out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**:  What observations about the relationship between sex and whether somebody is searched can you make based on these tables?  Why are the two tables from the previous problem different?
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 5**: Now split the data up into two subsets -- one that contains only the incidents involving a violation of transportation code or vehicla laws (in the variable reason_for_stop) and another that contains everything else.  Call these "df.A" and "df.B" respectively.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 6**: Construct the same probability contingency tables (by row and column) that you did in part 3 for both of these subsets.  Call them prob.by.col.A, prob.by.row.A, prob.by.col.B, and prob.by.row.B.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Comparing these tables with those you found in part 3, do you think that whether an individual was stopped for a traffic violation or for some other reason is a lurking variable that makes a difference in comparing sex and whether an individual was searched?  Explain.
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 8**: Construct a mosaic graph to compare the sex and person_searched variables from all three data frames (the original data and both subsets).
+
+```{r}
+```
+
+
+* **Problem 8**: Conduct the same analysis using the apd_race and person_searched variables.  This is optional and will not be graded, but gives you a chance to practice your interpretive skills.
+
+```{r}
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 3.2.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

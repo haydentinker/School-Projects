@@ -1,0 +1,227 @@
+---
+title: "Homework Assignment 4-2"
+author: "In this assignment we will investigate conditional probability and Bayes' Theorem.  We will again make use of the `prob` library with its warning messages.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_4-2.tests.R"))
+.AutograderInit()
+
+library(prob)
+library(LaplacesDemon)
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Drawing From an Urn**
+
+An urn contains three red marbles, two blue marbles, and one white marble.  Two marbles are drawn randomly without replacement and without regard to order.  Complete the following tasks related to this experiment.
+
+
+* **Problem 1**: Construct a sample space `S` for this experiment using the `urnsamples` function (see page 34 of the (PDF)[https://cran.r-project.org/web/packages/prob/prob.pdf]). Then use the `probspace` function (see page 26) and the `noorder` function (see page 22) to turn `S` into a probability measure.
+
+```{r}
+??urnsamples
+
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+
+* **Problem 2**: Based on your probability space, define each of the following events.
+    * `Event.A`: Both marbles are the same color
+    * `Event.B`: At least one marble is red
+    * `Event.C`: Exactly one marble is red
+    * `Event.D`: Exactly one marble is white
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Print out the probabilities of the events that you found above.
+
+```{r}
+```
+
+
+4. Now use the `given` parameter of the `Prob` function (see page 25) to find the following probabilities and save them in the indicated variables.
+
+    * The probability both marbles are the same color given that at least one of the marbles is red (`conditional.01`)
+    * The probability that at least one of the marbles is red given that both marbles are the same color (`conditional.02`)
+    * The probability that at least one marble is red given that exactly one marble is red (`conditional.03`)
+    * The probability both marbles are the same color given that one of the marbles is white (`conditional.04`)
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: Determine if the following statments are true or false based on the probabilities found in problems 3 and 4.  Justify your conclusions.
+
+    a. The events Event.A and Event.B abive are independent
+    b. The order matters in conditional probability (e.g. the probability of A given B may be different from the probability of B given A)
+
+```{solution,eval=FALSE}
+```
+
+
+**Conditional Probability and Tree Diagrams**
+
+The conditional probabilities we computed above can be modeled nicely using a tree diagram.  In the next set of problems, we will construct a tree diagram, label it with probabilities, and verify several important properties of such diagrams.
+
+
+* **Problem 6***: Once again, an urn contains three red marbles, two blue marbles, and one white marble.  Two marbles are drawn randomly without replacement but this time the order is noted.  Construct a probability space `T` for this experiment.  Use the function `marginal` (page 21) to combine rows with the same X1 and X2 values and create a probability distribution.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Now create the following events within the sample space `T`.
+
+    * `Event.1R`: The first marble drawn is red
+    * `Event.1B`: The first marble drawn is blue
+    * `Event.1W`: The first marble drawn is while
+    * `Event.2R`: The second marble drawn is red
+    * `Event.2B`: The second marble drawn is blue
+    * `Event.2W`: The second marble drawn is while
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+* **Problem 8**: Compute the probabilities that would be needed to draw a tree diagram for this experiment and save them in the indicated variables.  In particular, find the probability that:
+
+    * The first marble drawn is red (`prob.1R`)
+        * The second marble drawn is red given that the first was red (`prob.2R.given.1R`)
+        * The second marble drawn is blue given that the first was red (`prob.2B.given.1R`)
+        * The second marble drawn is white given that the first was red (`prob.2W.given.1R`)
+    * The first marble drawn is blue (`prob.1B`)
+        * The second marble drawn is red given that the first was blue (`prob.2R.given.1B`)
+        * The second marble drawn is blue given that the first was blue (`prob.2B.given.1B`)
+        * The second marble drawn is white given that the first was blue (`prob.2W.given.1B`)
+    * The first marble drawn is white (`prob.1W`)
+        * The second marble drawn is red given that the first was white (`prob.2R.given.1W`)
+        * The second marble drawn is blue given that the first was white (`prob.2W.given.1W`)
+        * The second marble drawn is white given that the first was white (`prob.2B.given.1W`)
+
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+* **Problem 9**: Now sketch a picture of this tree diagram with the probabilities computed above and describe it below, giving probabilities for each branch.
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 10**: Verify the following rules about tree diagrams using the events and probabilities defined above. 
+
+    * The sum of the probabilities for the branches in the first level of the tree is equal to one.
+    * The sum of the probabilities for each set of sub-branches is also equal to one.
+    * The probability of getting a red followed by a white is equal to the product of the probability the first is red and the probability the second is white.  Define an event Event.RW to help verify this.
+    * The probability the second marble is blue is equal to the sum of the probabilities the first is red and the second is blue, the first is blue and the second is blue, and the first is white and the second is blue.
+
+```{r}
+```
+
+
+**Bayes' Theorem**
+
+The R package `LaplacesDemon` (loaded above) includes a function for computing conditional probabilities based on Bayes' Theorem.  Load this package and then complete the following tasks.
+
+
+* **Problem 11**: The tree diagram you created in problem 9 above is not set up to nicely compute the probability of drawing a certain marble first given information about the second marble that is drawn.  But we can compute these probabilities using the conditional probability formula, which says
+
+$$ P(A|B) = \frac{P(A\cap B)}{P(B)}$$
+Use this to compute the following conditional probabilities and assign them to the variables indicated.  The first one is done for you.
+
+    * The probability that the first marble was red given that the last was red (`prob.1R.given.2R`)
+    * The probability that the first marble was red given that the last was blue (`prob.1R.given.2B`)
+    * The probability that the first marble was red given that the last was white (`prob.1R.given.2W`)
+
+    
+```{r}
+prob.1R.given.2R <- Prob(intersect(Event.1R,Event.2R)) / Prob(Event.2R)
+```
+
+```{r}
+.AutogradeProblem11()
+```
+
+
+* **Problem 12**: The function `BayesTheorem` can also be used to compute such probabilities.  It takes as its first parameter a vector of the probability of each initial part of the experiment (e.g. the first marble is red, white, or blue) and as a second parameter, the vector of the conditional probabilities for the second step (e.g. the probability the second marble is red, white, or blue, given that the first marble was one of these).  Use `BayesTheorem` to compute the following probabilities and save them in the indicated variable.  The first one is done for you.
+
+    * The probability that the first marble was white given that the last was red (`prob.1W.given.2R`)
+    * The probability that the first marble was red given that the last was blue (`prob.1B.given.2B`)
+    * The probability that the first marble was blue given that the last was white (`prob.1R.given.2W`)
+
+```{r}
+prob.1W.given.2R <- BayesTheorem(
+  c(prob.1R,prob.1B,prob.1W),
+  c(prob.2R.given.1R,prob.2R.given.1B,prob.2R.given.1W)
+)[3]
+```
+
+```{r}
+.AutogradeProblem12()
+```
+
+
+* **Problem 13**: When a certain professor gets a fast-food craving, he will go to Taco Bell 70% of the time and to Subway 30% of the time.  If he goes to Taco Bell he will purchase a drink 20% of the time.  But if he goes to Subway, he will purchase a drink 40% of the time.  Suppose that on a given fast-food run the professor purchases a drink.  What is the probability he went to Subway?  Use the `BayesTheorem` function to save your answer as `prob.subway`.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem13()
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 4.2.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

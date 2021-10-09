@@ -1,0 +1,239 @@
+---
+title: "Homework Assignment 9-1"
+author: "In this homework assignment we work with linear regression models based on multiple dependent variables and explore ways toi tune those models.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_9-2.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Multiple Regression**
+
+The built-in R data set `swiss` contains various socioeconomic indicators from each of the 47 French-speaking provinces of Switzerland at about 1888.  We will use this data to examine linear models with several dependent variables.
+
+* **Problem 1**: Using the help file for the `swiss` data set as a source, give the variables in this data set and explain what they stand for.
+
+```{solution,eval=FALSE}
+[,1]	Fertility	Ig, ‘common standardized fertility measure’
+[,2]	Agriculture	% of males involved in agriculture as occupation
+[,3]	Examination	% draftees receiving highest mark on army examination
+[,4]	Education	% education beyond primary school for draftees.
+[,5]	Catholic	% ‘catholic’ (as opposed to ‘protestant’).
+[,6]	Infant.Mortality	live births who live less than 1 year.
+```
+
+
+* **Problem 2**: Build a linear model for the variable `Fertility` based on the variables `Education` and `Catholic`.  Save this model as `model.1` and print out a summary of the model.
+
+```{r}
+df<-swiss
+model.1<-lm(Fertility~Education+Catholic,data=swiss)
+summary(model.1)
+
+model.1$coefficients
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Based on the estimated coefficients in your summary and the R-squared value of the model, respond to the following stereotypical claims about the relationship between fertility rates and each of the dependent variables.
+
+  * Catholics have more children than Protestants
+  * Less educated people have more children than more educated people
+
+```{solution,eval=FALSE}
+Both them are true
+```
+
+
+* **Problem 4**: The code below produces a 3D graph of this model similar to the one found on page 236 of your text. Do you notice any trends that this linear model does not seem to capture? 
+
+```{r}
+library(scatterplot3d)
+tmp.data <- swiss[,c("Education","Catholic","Fertility")]
+s3d <- scatterplot3d(tmp.data, type = "h", angle=45, highlight.3d=TRUE)
+s3d$plane3d(model.1)
+```
+
+```{solution,eval=FALSE}
+Skewed right. The linear model combines the variables but in this model we can clearly see the difference between the education level vs Catholic impacts the number of children seperately.
+```
+
+
+* **Problem 5**: Using the `predict` function and your model, predict the fertility measure in a swiss province in which the Education variable was 40 and the percent Catholic was 75.  Save this prediction as `pred.1` and print it out.
+
+```{r}
+pred.1<-predict(model.1,newdata=data.frame(Education=40,Catholic=75))
+pred.1
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+**Kitchen Sink Regression**
+
+It is tempting to build a linear model for one variable using every other variable in the data set.  This is called "kitchen sink" regression because we throw in "everything but the kitchen sink."  But, as we shall see, this usually isn't the best approach.
+
+
+* **Problem 6**: Construct a linear model for the variable `Examination` based on all of the other variables in the `swiss` data set.  Save your results as `model.2` and print out a summary.
+  
+```{r}
+model.2<-lm(Examination~.,data=swiss)
+summary(model.2)
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Compute the root mean square error for this model (see homework 9.1), save it in the variable `rmse.2`, and print it out.  What does this number together with the adjusted $R^2$ value in your summary above tell you about the strength of the model?
+  
+```{r}
+rmse.2<-sqrt(mean(model.2$residuals^2))
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+```{text}
+The adjusted R-squared is 0.7022 and the mean saured error is 4.066.  The adjusted R-squared value tells us that there is a somewhat strong correlation (with about 70% of the change in Examination attributable to the value of the other variables).  The root mean square error of about 4 is also small relative to the range of `Education` values in the data set, indicating that the model fits the data fairlly well.
+```
+
+
+* **Problem 8**: Write a function `fn.2` which takes five variables, x1 through x5, and returns the approximate value of `Education` based on the model above.  Use your function to predict the value of `Education` when (x1,x2,x3,x4,x5) = (85,50,25,70,15).  Save this prediction as `pred.2` and print it out.  Does your prediction seem reasonable?
+
+    * x1 = Fertility
+    * x2 = Agriculture
+    * x3 = Education
+    * x4 = Catholic
+    * x5 = Infant.Mortality
+    
+```{r}
+
+fn.2 <- function(x1,x2,x3,x4,x5) {
+predict(model.2, newdata = data.frame(Fertility=x1, Agriculture=x2, Education=x3,Catholic=x4,Infant.Mortality=x5))}
+pred.2 <- round(fn.2(85,50,25,70,15),6)
+pred.2
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+```{solution,eval=FALSE}
+Yes the predictions seem reasonable.
+```
+
+
+* **Problem 9**: Use the `vif` function from the `car` package to compute the variance inflation factors for this kitchen-sink model. Save the results of this model as `var.results` and print them out. Identify potential sources of multi-collinearity and narrow your predictor variables down to two or fewer.
+
+```{r}
+library(car)
+var.results<-vif(model.2)
+var.results
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+```{solution,eval=FALSE}
+The two sources could be fertility and education.
+```
+
+
+**Refining the Model**
+
+Whatever your selection was above, we will now build a new linear model using only the predictors `Education` and `Catholic`.  These were selected because `Catholic` had a low score for multi-collinearity and our intuition suggests that `Infant.Mortality` would have little to do with examination scores while `Education` should be highly correlated.  This time, however, we will set aside 7 of the 47 rows in our data set for testing purposes.  The code below accomplishes this.
+
+```{r}
+set.seed(203)
+training.rows <- sample(1:47,40)
+testing.rows <- seq(1,47)[-training.rows]
+```
+
+
+* **Problem 10**: Construct a linear model to predict `Examination` using only the variables `Education` and `Catholic` and only the training rows selected above.  Save this as `model.3` and print out a summary of the model.  How did the $R^2$ value change compared to our kitchen sink model?
+
+```{r}
+model.3<-lm(Examination~Education+Catholic,data=swiss[training.rows,])
+summary(model.3)
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+```{solution,eval=FALSE}
+Our r^2 is higher so it is a better fit.
+```
+
+
+* **Problem 11**: Compute the variance inflation factors for your new model and comment on how they have changed, if at all.
+
+```{r}
+vif(model.3)
+```
+
+```{solution,eval=FALSE}
+They went down. This means they are less likely to be multicolinearity sources.
+```
+
+
+* **Problem 12**: Now use the `predict` function to find the predicted Examination value for the seven test provinces whose indexes are stored in the vector `testing.rows`.  Save these predictions as `pred.3` and print them out. Also print out the actual `Examination` values in the testing data set.
+
+```{r}
+pred.3<-predict(model.3,newdata=swiss[testing.rows,])
+```
+
+```{r}
+.AutogradeProblem12()
+```
+
+
+* **Problem 13**: Finally, compute the root mean square error (square root of the average of the square of the difference between the predicted and actual values) for these test provinces.  How good were your predictions?
+
+```{r}
+sqrt(mean((pred.3-swiss[testing.rows,"Examination"])^2))
+```
+
+```{solution,eval=FALSE}
+Predicts were generally accurate with a noticeable range of error.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 9.2.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

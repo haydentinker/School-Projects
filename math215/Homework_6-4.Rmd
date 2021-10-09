@@ -1,0 +1,242 @@
+---
+title: "Homework Assignment 6-4"
+author: "In this classwork assignment we will use the built-in R functions `aov` and `chisq.test` to test hypotheses about multiple means and independence of population characteristics.  You will also use the `shapiro.test` and `qqPlot` functions to check for normality.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_6-4.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Gas Mileage, Take Two**
+
+Suppose that the rental care company from our previous assignment adds mid-grade gasoline to their test.  The select 10 different cars of the same make, model, and year to test with each of the three grades of gas, and find the following miles per gallon measurements for each of them.
+
+```{r}
+regular.gas <- data.frame(grade=cbind("regular"), mpg=
+   cbind(c(16,20,21,22,23,22,21,25,27,23)) );
+midgrade.gas <- data.frame( grade=cbind("mid"), mpg=
+   cbind(c(24,23,24,27,20,26,22,22,23,20)) );
+premium.gas <- data.frame( grade=cbind("premium"), mpg=
+   cbind(c(26,22,24,24,27,28,26,26,28,32)) );
+all.gas <- rbind(regular.gas,midgrade.gas,premium.gas);
+```
+
+
+* **Problem 1**: Conduct an ANOVA test using the `aov` function to test the hypothesis that there is no difference in miles per gallon between the three grades of gas.  Save the results as `anova.results` and use the `summary` function to print them out.
+
+```{r}
+anova.results<- aov(mpg~grade,data=all.gas)
+summary(anova.results)
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+
+* **Problem 2**: What does this test tell you?  Interpret this in terms of the hypotheses mentioned above.
+
+```{solution,eval=FALSE}
+According to the Pr(>F) the difference between groups is significant but it does not tell us which groups.
+```
+
+
+* **Problem 3**: Use the pairwise.t.test function to identify what differences might be statistically significant. Save the results as pairwise.results, print them out, and interpret the results.
+
+```{r}
+pairwise.results<-pairwise.t.test(all.gas$mpg,all.gas$grade)
+pairwise.results
+
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+```{solution,eval=FALSE}
+There is a highly significant difference between the regular and premium. When looking at a 0.05 sigficance level premium and mid is sigficant.
+```
+
+
+* **Problem 4**: Check the assumption that the three populations have equal variances using the `leveneTest` function contained in the `car` package.  Save the results of that function as `levene.results` and print them out.
+
+```{r}
+library(car)
+levene.results<- leveneTest(mpg~grade,data=all.gas)
+levene.results
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+```{solution,eval=FALSE}
+Since we don't have a significant p value the variance is similar in the grades.
+```
+
+
+* **Problem 5**: Decide if the residuals from your test appear to be normally distributed by looking at three items:
+
+    * A histogram of the residuals,
+    * The results of the `shapiro.test` function on the residuals (saved as `shaprio.results` and printed out), and 
+    * a `qqPlot` of the residuals.
+
+```{r}
+shapiro.results<-shapiro.test(anova.results$residuals)
+shapiro.results
+qqPlot(anova.results$residuals)
+hist(anova.results$residuals)
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+```{solution,eval=FALSE}
+With just the histogram it looks normal, but when looking at the qqPlot there are some values that fall outside of the boundaries. We do not reject normality.
+```
+
+
+* **Problem 6**: One of these two assumptions (normality or equal variances) should be the most questionable.  Use either the `oneway.test` function if it is the variances are not homogeneous, or the non-parametric `kruskal.test` function if the normality assumption is violated to verify the results of the ANOVA test.  Save the results of the test related to the most problematic assumption as `problem.results`.
+
+```{r}
+problem.results <- kruskal.test(mpg~grade,data=all.gas)
+problem.results
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+```{solution,eval=FALSE}
+The p-value from the kruskal test was signifcant so there was a difference between the values.
+```
+
+
+**College Scorecard**
+
+The command below will download the college scorecard data examined in previous classwork assignments.  We wish to determine if there is a relationship between the west-coast states and predominant degree or between SAT scores and whether an institution admits only men or only women.  
+
+    * construct a tabular representation of the relationship between the variables,
+    * conduct a chi-squared test of independence, and
+    * examine the residuals and comment on what they tell you about the relationship.
+   
+```{r}
+cs <- read.csv("https://webwork.wallawalla.edu/courses/math215/data/Most-Recent-Cohorts-All-Data-Elements.csv",stringsAsFactors=F);
+cs$SAT_AVG <- as.numeric(cs$SAT_AVG)
+```
+
+
+* **Problem 7**: To test the relationship between State (STABBR) and Predominant Degree (PREDDEG) for west-coast states (Washington, Oregon, and California), we must first construct a contingency table with rows for each state and columns for each PREDDEG category.  Save this table to the variable `cs.table.1` and print it out.
+
+```{r}
+cs.1<-cs[cs$STABBR %in% c("WA","OR", "CA"),]
+cs.table.1<-with(cs.1,table(STABBR,PREDDEG))
+cs.table.1
+```
+
+```{r}
+prop.table(cs.table.1,1)
+```
+
+
+* **Problem 8**: Next conduct a chi-squared test of independence on the table.  Save the results as `chisq.results.1` and print them out.  What conclusion do you make?
+
+```{r}
+cs.results.1<-chisq.test(cs.table.1)
+cs.results.1$observed
+cs.results.1$expected
+
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+```{solution,eval=FALSE}
+The observed and expected were fairly close, but it was weird that OR 0 had 0 observed but the expected had 5.6. 
+```
+
+
+* **Problem 9**: Now examine the residuals from your test and comment on what they tell you about specific pairs of values from the two variables.
+
+```{r}
+cs.results.1$residuals
+```
+
+```{solution,eval=FALSE}
+Examining the residuals suggests that Oregon has a much smaller number of "level 0" schools and a much larger number of "level 3" schools relative to the other states.  The other residuals are relatively small, indicating less variation between what was observed and what was expected.
+```
+
+
+* **Problem 10**: Finally, we wish to test the relationship between average SAT test score of admitted students and whether a school admits only a single gender.  To do this, we will first add two columns to the `cs` data frame:
+
+  * A column named `SAT.Category` that has the category codes:
+    - 0 if SAT_AVG < 900,
+    - 1 if 900 <= SAT_AVG < 1200, or
+    - 2 if SAT_AVG > 1200
+  * A column named `Gender.Selective` with the category codes:  (Hint: add numeric versions of MENONLY and WOMENONLY together)
+    - 0 if the school does not admit only a single gender (so MENONLY and WOMENONLY are both 0)
+    - 1 if the school admits only a single gender (so one of MENONLY and WOMENONLY is 1)
+  
+  
+```{r}
+cs$SAT.Category <- (cs$SAT_AVG >= 1200) + (cs$SAT_AVG >= 900)
+cs$Gender.Selective <- as.numeric(cs$MENONLY) + as.numeric(cs$WOMENONLY)
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+
+* **Problem 11**: Next, construct a table with rows for the SAT categories and columns for the gender selection columns.  Save it as `cs.table.2` and run a chi-squared test, saving those results as `cs.results.2`.  
+
+```{r}
+cs.table.2 <- with(cs,table(SAT.Category,Gender.Selective))
+cs.table.2
+cs.results.2 <- chisq.test(cs.table.2)
+cs.results.2
+```
+
+```{r}
+.AutogradeProblem11()
+```
+
+
+* **Problem 12**: Based on the results above, what can you conclude about a potential relationship between SAT scores (at least in these groups) and gender selectivity?  Note that the chi-squared test should have warned you that the approximation may be incorrect.  Why do you think that is?
+
+```{solution,eval=FALSE}
+Since the p-value is not signifcant the relationship between the SAT Scores and Gender Selective is not very strong.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 6.4.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

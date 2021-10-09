@@ -1,0 +1,166 @@
+---
+title: "Homework Assignment 4-1"
+author: "In this assignment we will explore sample spaces and basic probability rules.  We will make use of the `prob` package for most of this activity, so be sure to run the code below to load it. Ignore the warning messages that appear about masking functions.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_4-1.tests.R"))
+.AutograderInit()
+library(prob)
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Flipping a Coin**
+
+We begin with one of the simplest of probability experiments, flipping a coin.  Complete the following activities to investigate this experiment.
+
+* **Problem 1**: Read the help file for the `prob` package.  The best way to do this is to do a Google search for `prob::prob` and then click on the first item that comes up.  This should be a PDF file containing the help information.
+
+
+* **Problem 2**: Use the `tosscoin` function to define three probability spaces, coin.1, coin.3, and coin.5 which coincide with tossing a fair coint 1 time, 3 times, and 5 times.  Use the `makespace=TRUE` parameter to assign probabilities to each outcome in the space.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Use the 'subset' command to create three events in the sample space defined by coin.3.  `Event.A` is the event that the first toss is a heads, `event.B` is the event that the last toss is a tails. See page 32 of the PDF help file for examples.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Give the probability of events A, and B defined above.  Save them in the variables `prob.A` and `prob.B`.  See page 26 of the PDF file for help.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: Find the probability that the first toss is a head AND the last toss is a tail and then find the probability that the first toss is a head OR the last toss is a tail.  Save these in prob.AND and prob.OR
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+* **Problem 6**: Do the probabilites found in #4 and #5 above match your intuition?  Explain.
+
+```{solution,eval=FALSE}
+```
+
+
+** Problem 7**: Now repeat steps 2-5 above for a coin with a probability of coming up Heads of 1/3 and 2/3 for Tails. Use hte `iidspace` function which is found on page 16 in the help file.  Store the probabilities in variables `prob.A2`, `prob.B2`, `prob.AND2`, and `prob.OR2`.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+**Rolling a Die**
+
+We now turn to another common probability experiment, rolling a die.  Only our die will have five sides instead of the more typical six.
+
+
+* **Problem 8**: Generate a probability space `die.3` for the experiment of rolling tree five-sided dice.  The `rolldie` function will be helpful here.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+* **Problem 9**: What sums are possible and which are most likely?  Add tje X1, X2, and X3 columns from the die.3 data frame to create a vector of possible sums of the three numbers rolled.  Then use the function `marginal` (page 8 of the PDF) to create a probability distribution.  Save the distribution in the variable `die.sum.dist` and print it out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+
+* **Problem 10**: The following code will create a create a probability histogram for the sum. How would you describe the shape of this probability distribution?
+
+```{r}
+library(ggplot2)
+ggplot(die.3, aes(x=die.3$sum)) + 
+  geom_histogram(aes(y=..density..),binwidth=1) +
+  labs(title="Probability Distribution for Sum of Three 5-Sided Die") +
+  labs(x="Sum", y="Probability")
+```
+
+```{solution,eval=FALSE}
+```
+
+
+**Playing Cards**
+
+We can do the same type of exploration using playing cards.
+
+* **Problem 11**: Create a probability space `card.1` that consists of possible cards that can be drawn from a standard deck of 52 playing cards without jokers.  See page 4 of the PDF help file for more information.
+
+```{r}
+```
+
+
+```{r}
+.AutogradeProblem11()
+```
+
+
+* **Problem 12**: Use the `marginal` function to compute the probability distributions for the rank (number on the card) and suit (hearts, clubs, etc) of the cards.  Save these as `card.dist.rank` and `card.dist.suit` and print them out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem12()
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 4.1.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

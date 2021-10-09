@@ -1,0 +1,212 @@
+---
+title: "Homework Assignment 10-2"
+author: "In this homework assignment we will use the decision trees and random forests classification algorithms.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_10-2.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**College Scorecard**
+
+In this classwork assignment, we will once again make use of the College Scorecard data set.  We will attempt to build a decision tree to predict the predominant degree type of a college based on the proportion of degrees awarded that are in Computer Science, Mathematics, Engineering, and Business.
+
+* **Problem 1**: The first step is to download and clean our data set.  The following R code should do that for you.  Explain what this code does.
+
+```{r}
+df <- read.csv("https://webwork.wallawalla.edu/courses/math215/data/Most-Recent-Cohorts-All-Data-Elements.csv",stringsAsFactors=F)
+my.df <- data.frame("PREDDEG"=cbind(df$PREDDEG))
+my.df$PREDDEG <- as.factor(my.df$PREDDEG)
+my.df$UGDS <- as.numeric(df$UGDS)
+my.df$CPTR <- as.numeric(df$PCIP11)
+my.df$ENGR <- as.numeric(df$PCIP15)
+my.df$MATH <- as.numeric(df$PCIP27)
+my.df$BUSN <- as.numeric(df$PCIP52)
+my.df$CPTR <- ifelse(is.na(my.df$CPTR),0,my.df$CPTR)
+my.df$ENGR <- ifelse(is.na(my.df$ENGR),0,my.df$ENGR)
+my.df$MATH <- ifelse(is.na(my.df$MATH),0,my.df$MATH)
+my.df$BUSN <- ifelse(is.na(my.df$BUSN),0,my.df$BUSN)
+my.df <- my.df[!is.na(my.df$UGDS),]
+```
+
+```{solution,eval=FALSE}
+This gets rid of the NAs in the data frame and converts things to be numeric
+```
+
+
+* **Problem 2**: Now split the 6041 rows in the `my.df` data frame into a training and testing set.  Put 2/3rds of the rows in the training set named `my.df.train` and the remaining 1/3 in the testing set named `my.df.test`.
+
+```{r}
+set.seed(1973)
+df.train.rows<-sample(1:nrow(my.df),2/3*nrow(my.df))
+my.df.train<-my.df[df.train.rows,]
+my.df.test<-my.df[-df.train.rows,]
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3** Now use the `tree` function in the `tree` library to create a decision tree for `PREDDEG` based on the other variables in your training set.  Save the results to `tree.1` and use the `summary` function to view them.  What is the accuracy of your decision tree on the training set?
+
+```{r}
+set.seed(2008)
+library(tree)
+tree.1<-tree(PREDDEG~.,data=my.df.train)
+summary(tree.1)
+
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+```{solution,eval=FALSE}
+It misclassifies 1071/4027
+```
+
+
+* **Problem 4**: Now `plot` the decision tree and add `text` to it so you get the graphical representation. Describe how you could use it to classify an institution in which the proportion of math majors is 0.001, the proportion of business majors is 0.12, and the proportion of engineering majors is 0.06.
+
+```{r}
+plot(tree.1)
+text(tree.1)
+```
+
+```{solution,eval=FALSE}
+You could make a tree plot with a branch for each of the majors.
+```
+
+
+* **Problem 5**: Create a vector of predictions named `pred.1` using the `predict` function with your testing data.  Be sure to specify that this is a classification tree using the `type="class"` parameter.  Then compute the percent accuracy, save it to the variable `accuracy.1` and print it out.
+
+```{r}
+pred.1<-predict(tree.1,newdata=my.df.test,type="class")
+my.df.matched<-pred.1==my.df.test$PREDDEG
+accuracy.1<-sum(my.df.matched)/length(my.df.matched)
+accuracy.1
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+* **Problem 6**: Use the `cv.tree` function to explore the optimal size of the tree (in terminal nodes). Save your results to `cv.results` and plot them to pick an optimal size.  Explain why you chose the size you did.
+
+```{r}
+set.seed(42)
+cv.results<-cv.tree(tree.1,FUN=prune.misclass)
+plot(cv.results$size,cv.results$dev,type="b")
+```
+
+```{solution,eval=FALSE}
+According to the plot I made from the results somewhere between 5 to 7 would be good.
+```
+
+
+* **Problem 7**: Regardless of the number you chose above, prune your tree to five nodes using the `prune.misclass` function with the `best` parameter.  Save this as `pruned.tree` and plot it with text labels.
+
+```{r}
+pruned.tree<-prune.misclass(tree.1,best=5)
+summary(pruned.tree)
+plot(pruned.tree)
+text(pruned.tree)
+
+plot(tree.1)
+text(tree.1)
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+* **Problem 8**: Explain how your pruned tree is different from the original tree that we created.  Will it result in the same classifications as the original tree?
+
+```{solution,eval=FALSE}
+The nodes on the side are shorter.
+```
+
+
+**College Scorecards in the Forest**
+
+Now we will do the same classification, but use a forest of decision trees instead of a single tree.  The commands below will clean up the factors in our testing and training data in preparation for creating a random forest.
+
+```{r}
+my.df.train$PREDDEG <- droplevels(my.df.train$PREDDEG)
+my.df.test$PREDDEG <- droplevels(my.df.test$PREDDEG)
+```
+
+
+* **Problem 9**: To start this process, load the `randomForest` package and use the `randomForest` function to create a random forest to predict `PREDDEG` based on the other variables in your training data.  Include the parameters `ntree=2000` and `mtry=5` and save your results as `forest.1`.  Be prepared to wait a little bit!
+
+```{r}
+set.seed(2020)
+forest.1<-randomForest(PREDDEG~.,data=my.df.train,ntree=2000,mtry=4,importance=TRUE,proximity=TRUE)
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+
+* **Problem 10**: Compute the accuracy rate of your random forest on both the training and testing data.  Save these as `forest.train.accuracy` and `forest.test.accuracy` and print them out.
+
+```{r}
+forest.train.predict <- forest.1$predicted == my.df.train$PREDDEG
+forest.train.accuracy <- sum(forest.train.predict) / length(forest.train.predict)
+forest.pred.test <- predict(forest.1, newdata = my.df.test, type="class")
+forest.matched.test <- forest.pred.test == my.df.test$PREDDEG
+forest.test.accuracy <- sum(forest.matched.test)/length(forest.matched.test)
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+
+* **Problem 11**: How does the accuracy of your forest compare to the accuracy of the single decision tree, both on the training and testing data?
+
+```{solution,eval=FALSE}
+Both training and testing was more accurate than the first one.
+```
+
+
+* **Problem 12**: Do you think this endeavor is reasonable?  That is, can we predict the type of institution we are looking at based on the enrollment and the proportion of degrees awarded in Computer Science, Engineering, Math, and Business?
+
+```{solution,eval=FALSE}
+We think that it is reasonable and makes sense.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 10.2.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

@@ -1,0 +1,197 @@
+---
+title: "Homework Assignment 7-1"
+author: "In this classwork assignment we will explore the difference between the frequentist approach to inferential statistics (using confidence intervals) and the Bayesian approach (using credible intervals).<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_7-1.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+**Racial Profiling: Frequentist Analysis**
+
+We will once again work the the rational profiling data set, this time exploring the relationship between race and whether a person was searched or not.  Use the code below to download a copy of the entire data set.
+
+
+```{r}
+df <- read.csv("https://data.austintexas.gov/resource/x4p3-hj3y.csv?$limit=20000&$$app_token=ssRpFGv9pqU2dcW0St7dxbyD5",stringsAsFactors=F)
+```
+
+
+* **Problem 1**: We begin by conducting a frequentist analysis of this relationship.  In particular, we are interested in the proportion of Asians (apd_race_desc=="ASIAN") who were searched (person_searched_desc=="YES = 1").  Create a new data frame called `asian.df` that contains only the entries from `df` with `apd_race_desc` equal to "ASIAN".  Count the number of individuals in this data frame who were searched and save that in `asian.searched`.
+
+```{r}
+asian.df<-df[df$apd_race_desc=="ASIAN",]
+asian.searched<-asian.df[asian.df$person_searched_desc=="YES = 1",]
+asian.searched<-length(asian.searched$sex)
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+
+* **Problem 2**: Construct a 95% confidence interval for the proportion of Asians who were searched.  Use the `binom.test` function to generate this interval and create a vector named `conf.95` that contains the lower and upper confidence bounds to four decimal places.
+
+```{r}
+binom.test(x=109,n=135,p=109/135,conf.level=.95)
+conf.95<-c( 0.7306818,0.8701661)
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Conduct a NHST test of the claim that more than 75% of arrests of Asians included a search. Save the results of the `binom.test` function in the variable `atleast.75.results` and print it out. Complete all three parts of the hypothesis test process.
+
+```{solution,eval=FALSE}
+Null: No more than 75% were searched
+Alternative:More than 75% were searched
+```
+
+```{r}
+atleast.75.results<-binom.test(x=109,n=135,p=.75,conf.level=.95,alternative ="greater")
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+```{solution,eval=FALSE}
+We fail to reject the null at .05 significance level.
+```
+
+
+* **Problem 4**: Compute the proportion of individuals in the entire data set who were searched and save it as `prop.searched`.  What common-sense assumption about the `person_searched_desc` variable does this proportion confirm, but your confidence interval above ignore?
+
+```{r}
+prop.searched<-df[df$person_searched_desc=="YES = 1",]
+prop.searched<-length(prop.searched$sex)/length(df$sex)
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+```{solution,eval=FALSE}
+Similar to our lecture when we looked at the prop of a small data set it was different to the prop of the whole thing.
+```
+
+
+**Racial Profiling: Bayesian Analysis**
+
+Now lets conduct a similar analysis using Bayesian techniques.
+
+
+* **Problem 5**: Assume a uniform prior distribution (use a beta distribution with $\alpha = \beta = 1$) and construct a 95% credible interval based on a sample of 10000 values from the `rbeta` function. Do not change the random seed at the beginning of this code block. Save this interval to the vector `cred.95.unif` and decide if it is consistent with the claim that more than 75% of arrests of Asians included a search.
+
+```{r}
+set.seed(215)
+alpha <- 1+109
+beta <- 1+(135 - 109)
+samp <- rbeta(10000,alpha,beta)
+cred.95.unif<-c(quantile(samp,c(.025,.975)))
+
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+```{solution,eval=FALSE}
+The 95% intervals are about the same. So we fail to reject the null.
+```
+
+
+* **Problem 6**:  What beta distribution hyper parameter could you use to model a strong prior belief that the proportion of arrests which included a search is clustered around the proportion `prop.searched` computed above? The following code will help you decide, but it must be run in an interactive console, so cut and paste it.
+
+```{r}
+library(manipulate)
+manipulate( # requires RStudio
+  { plot( function(x) { dbeta(x, alpha.hyper, beta.hyper) }, 
+        col="blue", lwd=2, type="l", las=1, bty="n", 
+        ylim=c(0, 12), ylab="density", 
+        main="Beta prior distribution");
+    abline(v=1/(1+beta.hyper/alpha.hyper),lty=2,col="red") },
+  alpha.hyper=slider(0.1, 100, step=0.1, initial=1), 
+  beta.hyper=slider(0.1, 100, step=0.1, initial=1))
+```
+
+```{solution,eval=FALSE}
+To get it to center around .82 we used 14 as the beta and 65.2 as the alpha
+```
+
+
+* **Problem 7**: Regardless of what parameters you choose above, use $\alpha = 57$ and $\beta = 13$ to create a 95% credible interval and use it to decide if the claim that more than 75% of arrests of Asians included a search is reasonable.  Save your credible interval as a vector named `cred.95.prior` and print it out.
+
+```{r}
+set.seed(1025)
+alpha <- 57+109
+beta <- 13+(135 -109)
+samp <- rbeta(10000,alpha,beta)
+cred.95.prior<-quantile(samp,c(.025,.975))
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+```{solution,eval=FALSE}
+The interval is more narrow and it does not include our cred.95.unif. So we reject the null
+```
+
+
+* **Problem 8**: What differences do you note between the two credible intervals resulting from your different prior distributions?
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 9**: Your text talks about circumstances under which the evidence might overwhelm any prior beliefs.  The code below constructs credible intervals similar to those above (with the uniform prior and the second set of hyper parameters you chose) using the evidence for the entire data set (that is, the `person_searched_desc` proportion for all 12216 observations in the data set).  What do you observe about the effect of your prior belief in the face of this much evidence?
+
+```{r}
+set.seed(99324)
+alpha <- 1+sum(df$person_searched_desc=="YES = 1")
+beta <- 1+(length(df$person_searched_desc) - sum(df$person_searched_desc=="YES = 1"))
+samp <- rbeta(10000,alpha,beta)
+quantile(samp,c(.025,.975))
+
+alpha <- 57+sum(df$person_searched_desc=="YES = 1")
+beta <- 13+(length(df$person_searched_desc) - sum(df$person_searched_desc=="YES = 1"))
+samp <- rbeta(10000,alpha,beta)
+quantile(samp,c(.025,.975))
+```
+
+```{solution,eval=FALSE}
+Even though when looking at the whole data set and comparing the two it doesn't make a difference, when we were doing it for Asian people it helped us find a slightly smaller interval and allowed us to reject the null.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 7.1.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

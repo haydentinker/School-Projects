@@ -1,0 +1,182 @@
+---
+title: "Homework Assignment 6-3"
+author: "In this assignment we will continue to use built-in R functions to test hypotheses about single means.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_6-3.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+In this assignment we will use built-in R functions to test hypotheses about single means.
+
+
+**Gas Mileage**
+
+Drivers of cars calling for regular gas sometimes buy premium in the hopes that it will improve their gas mileage.  Suppose a rental car company randomly selected 10 cars of a particular make, model, and year which call for regular gas.  They also select 10 different cars of the same make, model, and year.  They used regular gas in the first group of 10 and measured their mileage (in mpg) over the entire tank of gas.  They used premium gas in the second group of 10 and measured their mileage.  The resulting miles per gallon for each car are given below.  Run this code chunk to load them into R.
+
+```{r}
+regular.gas <- c(16,20,21,22,23,22,27,25,27,28)
+premium.gas <- c(19,22,24,24,25,25,26,26,28,32)
+```
+
+
+* **Problem 1**: Write an appropriate pair of hypotheses to test if using premium gas made a difference.
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 2**: Use the R command `t.test` to conduct your test.  Save the results of this test to the variable `cars.results` and print it out.
+
+```{r}
+means1<- mean(c(regular.gas,premium.gas))
+t.test(premium.gas,regular.gas)
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Based on the p-value you found above, state your conclusion.
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 4**: What if the data above instead represented the mileage of the same ten cars, in the same order, when both regular and then premium gas were used?  Then we would need to conduct a paired t-test.  This can be done in R by using the parameter `paired=TRUE` in the `t.test` function. Save the results in the variable `pairs.results` and print it out.  Then report on the differences you notice -- especially as it relates to the p-value and conclusion.  
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 5**: Construct a scatter plot using this data and comment on anything you see that might lead to the results you found in the two tests above.
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+
+**WWU Class Schedule**
+
+We have previously investigated the average class size at WWU and we compared single categories (such as MATH classes or lower division classes) to the overall average.  Now that we can conduct tests of two means, we can compare two categories against each other.  Run the command below to load in the 2021 winter quarter schedule and remove any 0-enrolled classes.
+   
+```{r}
+wwu <- read.csv("https://webwork.wallawalla.edu/courses/math215/data/wwu_w21.csv",stringsAsFactors=F)
+wwu <- wwu[wwu$Enroll.Count!=0,]
+```
+
+
+* **Problem 6**: Let's compare the enrollment in Mathematics (MATH) and Nursing (NRSG) classes.  Start by computing the mean of each group and saving them as `x.bar.hist` and `x.bar.hist`.  Comment on the size of the effect (the difference between means).  If this difference turns out to be significant, will it be important?
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 7**: Next, create side-by-side box plots for the two samples and interpret what you see.
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 8**: The T-test requires that the samples come from normal populations.  Create a histogram for each sample and decide if you think it is reasonable to assume they come from normally-distributed populations.
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 9**: Compute the standard deviation for each sample.  Save them as `s.math` and `s.nrsg` and print them out. Do you believe it is reasonable to assume the populations have equal variances?
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 10**: Test the null hypothesis that the two samples come from populations with equal variances using the `var.test` function, save the results as `var.results` and print them out.  What does this test indicate?
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 11**: Use the appropriate `t.test` function (with or without `var.equal=TRUE` based on your answer above) to test the hypothesis that enrollment counts in MATH and NRSG classes are different.  Save the results as `means.results` and print them out.  State your conclusion.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem11()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 12**: Your test results above should have also given you a 95% confidence interval.  Interpret that interval.
+
+```{solution,eval=FALSE}
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 6.3.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

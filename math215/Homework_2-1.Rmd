@@ -1,0 +1,198 @@
+---
+title: "Homework Assignment 2-1"
+author: "MATH 215"
+abstract: "In this assignment we will practice loading data from external sources, creating bar graphs and historgrams, and computing measures of center.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_2-1.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**The College Scorecard**
+
+The College Scorecard is designed to increase transparency, putting the power in the hands of the public — from those choosing colleges to those improving college quality — to see how well different schools are serving their students.
+
+
+* **Problem 1**: Create a data frame named `CS` by loading this [CSV file](https://data.ed.gov/dataset/9dc70e6b-8426-4d71-b9d5-70ce6094a3f4/resource/823ac095-bdfc-41b0-b508-4e8fc3110082/download/most-recent-cohorts-all-data-elements.csv) containing the most recent college scorecard.  Be sure to use the parameter `stringsAsFactors=FALSE` to prevent strings from being loaded as factors as discussed in your text.  This is a large file (151 megabytes), so the download may take a few minutes!
+
+```{r}
+CS<- data.frame(read.csv("https://webwork.wallawalla.edu/courses/math215/data/Most-Recent-Cohorts-All-Data-Elements.csv"),stringsAsFactors = FALSE)
+
+```
+
+
+* **Problem 2**: Replace the UGDS column (which contains character strings representing the number of undergraduates at each college or university) with numeric values.
+
+```{r}
+CS$UGDS <- as.numeric(CS$UGDS)
+length(CS$UGDS)
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: How any undergraduates attend institutions that are for women only (WOMENONLY==1)? What about those that are for men only (MENONLY==1)?  Save these counts in the variables num.women.only and num.men.only and print them out.
+
+```{r}
+num.women.school <-(CS[CS$WOMENONLY==1,])
+num.women.only <- sum(num.women.school$UGDS)
+num.men.school <-(CS[CS$MENONLY==1,])
+num.men.schoolNA <-!is.na(num.men.school$UGDS)
+numVec <- num.men.school$UGDS
+numVec<-numVec [c(num.men.schoolNA)]
+num.men.only <- sum(numVec)
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Write a function sum.in.state which takes one parameter, the two-letter abbreviation for a state (STABBR), and returns the total undergraduate enrollment for institutions in that state (STABBR).  Use your function to print out the total number of undergraduates enrolled in Washington (WA) and Oregon (OR).
+
+```{r}
+sum.in.state <- function (stateAbbr){
+  School.Total <- (CS[CS$STABBR==stateAbbr,])
+  School.TotalNA <- !is.na(School.Total$UGDS)
+  StateUGDS.total<- School.Total$UGDS
+  StateUGDS.total<- StateUGDS.total[c(School.TotalNA)]
+  return(sum(StateUGDS.total))
+}
+Ore <- sum.in.state("OR")
+WAS <- sum.in.state("WA")
+print(Ore)
+print(WAS)
+
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: The variable STABBR contains the two-letter abbreviation for the state in which each college or university is located.  Answer the following questions about this variable.
+
+    * What measure of center should be used to summarize this variable (justify your answer)?  
+    * Compute it and store it in the variable state.center.  Note that R does not have a built-in mode function, so you will need to define your own.
+    * Interpret the result.  That is, explain what it means that you got the mode you did.
+
+```{solution,eval=FALSE}
+```
+
+```{r} 
+
+
+State.abbr.vector<- c(CS$STABBR) 
+modeFunction <- function (dataFrameVec){
+  varStabb <- dataFrameVec [1]
+  savedStabb<- varStabb
+  savedBiggestNum <-0
+  counter <- 1
+  modeVar <- 0
+  while(counter <= length(dataFrameVec)){
+    if(varStabb==dataFrameVec[counter]){
+      modeVar<- modeVar+1
+    }else{
+      savedStabb<- dataFrameVec[counter]
+      if(modeVar>savedBiggestNum){
+        savedBiggestNum<- modeVar
+        savedStabb <-varStabb
+      }
+    }
+    
+    counter <- counter+1
+  }
+  return(savedStabb)
+}
+
+state.center<-modeFunction(State.abbr.vector)
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+```{solution,eval=FALSE}
+````
+
+
+* **Problem 6**: Construct a bar graph for the variable PREDDEG (predominate degree).  Given that following correspondences, describe what this graph tells you.
+
+    * 0 = not classified
+    * 1 = predominantly certificate-degree granting
+    * 2 = predominantly associate's-degree granting
+    * 3 = predominantly bachelor's-degree granting
+    * 4 = entirely graduate-degree granting
+    
+```{r}
+barplot(table(CS$PREDDEG))
+```
+
+```{solution,eval=FALSE}
+The majority are either predominantly certifcate-degree granting or predominantly bachelor's-degree granting
+```
+
+
+* **Problem 7**: Compute the mean of PREDDEG, assigning it to the variable avg.pred.degree and printing it out.  What, if anything, does this number tell you?
+
+```{r}
+avg.pred.degree<- mean(CS$PREDDEG)
+```
+
+````{r}
+.AutogradeProblem07()
+````
+
+```{solution,eval=FALSE} 
+1 is the majority but it doesn't show us as much as the bar graph did
+```
+
+
+* **Problem 8**: The variable PCIP52 gives the percent of degrees awarded the field of Business.  Construct histograms for this variable using several different bin sizes and use them to describe the shape of the distribution using words liked "symmetric," "skewed," "outlier," etc.
+
+```{r}
+layout(matrix(c(1,2,3,4),2,2,byrow=TRUE))
+barplot(table(cut(as.numeric(CS$PCIP52),5)),space=0,main="Five Bins")
+barplot(table(cut(as.numeric(CS$PCIP52),10)),space=0,main="Ten Bins")
+barplot(table(cut(as.numeric(CS$PCIP52),15)),space=0,main="Fifteen Bins")
+barplot(table(cut(as.numeric(CS$PCIP52),20)),space=0,main="Twenty Bins")
+barplot(table(cut(as.numeric(CS$PCIP52),25)),space=0,main="Twenty Five Bins")
+barplot(table(cut(as.numeric(CS$PCIP52),30)),space=0,main="Thirty Bins")
+```
+
+```{solution,eval=FALSE}
+It is positively skewed because of the outliers.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 2.1.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

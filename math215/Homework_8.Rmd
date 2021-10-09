@@ -1,0 +1,198 @@
+---
+title: "Homework Assignment 8"
+author: "In this homework assignment we will utilize the bootstrap to construct sample distributions for several statistics and then to construct confidence intervals and test hypotheses for those statistics.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library(boot)
+source(here("homework","autograding","Homework_8.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Washington State City Population -- Initial Investigation**
+
+The URL below points to census data on 281 different cities in Washington State according to both the 2000 and 2010 census. Load this data before continuing on to the next questions.
+
+```{r}
+wa.pop <- read.csv("https://data.wa.gov/api/views/tx5i-i2ja/rows.csv?accessType=DOWNLOAD",stringsAsFactors=TRUE)
+```
+
+
+* **Problem 1:** Find the mean and median of the total populations for these cities in the 2010 census. Save them as `mean.pop` and `median.pop` and print them out. How are these two statistics related and what, if anything, does that tell you about potential outliers?
+  
+```{r}
+mean.pop<-mean(wa.pop$Total.Population.2010)
+median.pop<-median(wa.pop$Total.Population.2010)
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+```{solution,eval=FALSE}
+Since the median and the mean are so different there is a high probability of outliers. 
+```
+
+
+* **Problem 2**: We have learned to construct confidence or credible intervals for means, but as noted above the mean may not be a good measure of center for a data set. Construct a box plot for this data and comment further on the existence of outliers.  Do your findings suggest we can safely use the mean as a measure of center, or should we use the median instead?
+  
+```{r}
+boxplot(wa.pop$Total.Population.2010)
+```
+
+```{solution,eval=FALSE}
+We should use the median instead.
+```
+
+
+**Washington State City Population -- Bootstrapping the Median**
+
+Based on our exploration above, we decide to construct a 95% confidence interval for the median population of a WA city in 2010.  Unfortunately, as mentioned in the book, the methods for computing the sampling distribution of a median are complex and not feasible.  So instead, we will use the bootstrap to construct this interval.
+
+
+* **Problem 3**: First, use the `boot` function to construct a bootstrap object for the median population in 2010 using 10000 samples.  Save the results as `median.boot` and leave the `set.seed` command unchanged so that your results are repeatable.
+
+```{r}
+set.seed(1892)
+samp.median<- function(data,i){median(data[i])}
+median.boot<-boot(wa.pop$Total.Population.2010,samp.median,R=10000)
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Plot the distribution of bootstrap realizations using the `plot` function and the bootstrap object you created above. Describe the shape of the histogram shown.
+
+```{r}
+plot(median.boot)
+```
+
+```{solution,eval=FALSE}
+Skewed right slightly. It is not centered enough to be normal.
+```
+
+
+* **Problem 5**: Next construct a 95% confidence interval for the median population.  Use the `boot.ci` function and the "Basic" type of interval to do this.  Save your results as `median.conf` and print them out.
+
+```{r}
+median.conf<-boot.ci(median.boot,conf=0.95,type=c("basic"))
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+**Washington State City Population -- Bootstrapping the Correlation**
+
+Another statistics for which we don't have a good parametric distribution is the linear correlation.  We will use the bootstrap to investigate the correlation between the total population in 2010 and the total number of housing units in 2010.
+
+
+* **Problem 6**: First examine the scatter plot with a trend line for these two values.  What do you notice about how well the trend line matches your data, and what does this tell you about the value of the correlation for this sample?
+
+```{r}
+library(ggplot2)
+qplot(wa.pop$Total.Population.2010,wa.pop$Total.Housing.Units.2010) +
+  geom_smooth(method="lm",se=FALSE)
+
+```
+
+```{solution,eval=FALSE}
+The trend line matches the data pretty well. The correlation is strong.
+```
+
+
+* **Problem 7**: Next compute the correlation coefficient between these two variables using the `cor` function.  Save it as `wa.cor` and print it out.
+
+```{r}
+wa.cor<-cor(wa.pop$Total.Housing.Units.2010,wa.pop$Total.Population.2010)
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+* **Problem 8**: Use the bootstrap process to create a basic 99% confidence interval for the correlation between these two variables with the given random seed and 10000 samples.  Save the bootstrap results as `cor.boot` and the interval as `cor.conf` and print out the interval.
+
+```{r}
+set.seed(2019)
+cor.boot<- boot(
+  wa.pop,
+  function(data,i){
+  cor(data[i,"Total.Housing.Units.2010"],data[i,"Total.Population.2010"])
+},
+R=10000
+)
+cor.conf<-boot.ci(cor.boot,conf=0.99,type=c("basic"))
+cor.conf
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+* **Problem 9**: Does this interval match your intuition about the correlation coefficient from problem 6 above?  Explain what this interval means in the context of the population of all cities in Washington state, not just the 281 in this sample.
+
+```{solution,eval=FALSE}
+It does match our intuition and is very accurate.
+```
+
+
+* **Problem 10**: Finally, use the bootstrap process to create a basic 99% confidence interval for the difference between the correlation coefficient between total population and total housing units in 2010 and in 2000 with 10000 samples. Use the seed below, save your bootstrap results to `diff.boot` and confidence interval to `diff.conf` and print out the confidence interval. Note: add the parameter `use="complete.obs"` to your correlation function calls to take care of removing the `NA` values in the 2000 data.
+
+```{r}
+set.seed(1973)
+diff.boot<- boot(
+  wa.pop,
+  function(data,i){
+  cor(data[i,"Total.Housing.Units.2010"],data[i,"Total.Population.2010"],use="complete.obs")-cor(data[i,"Total.Housing.Units.2000"],data[i,"Total.Population.2000"],use="complete.obs")
+},
+R=10000
+)
+diff.conf<-boot.ci(diff.boot,conf=0.99,type=c("basic"))
+diff.conf
+```
+
+```{r}
+.AutogradeProblem10()
+```
+
+
+* **Problem 11**: Based on your confidence interval above, what do you conclude about the correlation between total population and total housing units in 2000 and in 2010?
+
+```{solution,eval=TRUE}
+They have low correlation. Population and housing unit don't really have a relationship.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 8.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

@@ -1,0 +1,204 @@
+---
+title: "Homework Assignment 11-1"
+author: "In this homework assignment we will create time series in R, plot them, decompose them into their components, and examine various windows on the data.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_11-1.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Gasoline Demand**
+
+The data set referenced below contains the monthly gasoline demand in Onatrio, CA in millions of gallons from January, 1960 through December, 1975.  Load it in to begin this homework assignment.
+
+```{r}
+df.gas <- read.csv("http://webwork.wallawalla.edu/courses/math215/data/monthly-gasoline-demand-ontario-.csv",stringsAsFactors=F)
+```
+
+
+* **Problem 1**: Our first task is to use the `ts` function to make a time series from this data.  Set the `start` and `frequency` parameters to get appropriate correlations between values and years/months in the data. Save your time series as `gas.ts` and then print it out.
+
+```{r}
+gas.ts<-ts(data=df.gas,start=c(1960,1),frequency = 12)
+gas.ts<-gas.ts[,-1]
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+
+* **Problem 2**:Now use the `autoplot` function from the 'forecast' and 'ggplot2' packages to display this time series.  What can you tell about the trend component and seasonal components of this series from looking at this plot?
+
+```{r}
+library(forecast)
+library(ggplot2)
+autoplot(gas.ts)
+```
+
+```{solution,eval=FALSE}
+There appears to be seasonal components and the trend is positive.
+```
+
+
+* **Problem 3**: One way to better study the trend in a time series is to aggregate the data into fewer measurements.  For example, in this gasoline demand time series, you should have noticed a yearly cycle.  Use the `aggregate` function to define a new time series that has the yearly total gas demand.  Save this as `gas.ts.yearly` and plot it. 
+
+```{r}
+gas.ts.yearly<-aggregate(gas.ts,nfrequency=1,FUN=sum)
+autoplot(gas.ts.yearly)
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+* **Problem 4**: Experiment with the aggregate function, trying different values for the `nfrequency` and `FUN` parameters.  Plot at least three different aggregations of this time series using both different frequencies and different aggregate functions.
+
+```{r}
+gas.ts.yearly.2<-aggregate(gas.ts,nfrequency=3,FUN=sum)
+autoplot(gas.ts.yearly.2)
+gas.ts.yearly.mean<-aggregate(gas.ts,nfrequency=2,FUN=mean)
+autoplot(gas.ts.yearly.mean)
+gas.ts.yearly.median<-aggregate(gas.ts,nfrequency=3,FUN=median)
+autoplot(gas.ts.yearly.median)
+```
+
+
+* **Problem 5**: Next, use the `decompose` function to decompose the original time series into its components.  Save your decomposition as `gas.ts.decom` and plot it using the `autoplot` function.
+
+```{r}
+gas.ts.decomp<-decompose(gas.ts)
+autoplot(gas.ts.decomp)
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+* **Problem 6**: Describe what each part of the decomposition graph above tells you.
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 7**: The default decomposition is additive.  Create a multiplicative decomposition named `gas.ts.decomp.2` and graph it.  Do you notice any differences?
+
+```{r}
+gas.ts.decomp.2<-decompose(gas.ts,type="multiplicative")
+autoplot(gas.ts.decomp.2)
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+```{solution,eval=FALSE}
+They look pretty similar except for the missing bar on the right
+```
+
+
+* **Problem 8**: Your book mentioned that if a forecast model is a good fit, then after factoring out the trend and seasonal components, the remaining error component should look like 'white noise' with a mean of zero.  Test the hypothesis that the mean of the remainder in your decomposition (which can be accessed with `gas.ts.decomp$random`) is zero, create a histogram for those remainders, and comment on how much they looks like random white noise.
+
+```{r}
+hist(gas.ts.decomp$random)
+```
+
+```{solution,eval=FALSE}
+The distribution looks pretty normal and it looks like there isn't a lot of white noise.
+```
+
+
+**Tree Ring Width**
+
+The following data file contains the width of tree rings from a tree (or trees) in the state of Oregon from 1501 through 1982.  Load it in before completing the rest of this assignment.
+
+```{r}
+df.tree <- read.csv("http://webwork.wallawalla.edu/courses/math215/data/years-15011982-oregon-usa.csv",stringsAsFactors=F)
+```
+
+
+* **Problem 9**: Construct a time series with this data and name it `trees.ts`.  Note that you will use `frequency=1` since there is no obvious seasonal period in this yearly data.
+
+```{r}
+trees.ts<-ts(df.tree,frequency=1,start=c(1501,1))
+trees.ts<-trees.ts[,-2]
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+
+* **Problem 10**: Plot the time series.  Do you notice any obvious cyclic patterns?
+
+```{r}
+autoplot(trees.ts)
+```
+
+```{solution,eval=FALSE}
+It is just going up. It isn't going up and down so there is no seasonal part to it.
+```
+
+
+* **Problem 11**: Sometimes too much data can obscure patterns or patterns may change over time.  Use the `window` function to take the data in 100-year chunks (1501-1599, 1600-1699, 1700-1799, 1800-1899, and 1900 on) and plot each one  Comment on any patterns you see in these smaller plots.
+
+```{r}
+
+autoplot(window(trees.ts,start=c(1600,1),end=c(1699,11)))
+autoplot(window(trees.ts,start=c(1700,1),end=c(1799,11)))
+autoplot(window(trees.ts,start=c(1800,1),end=c(1899,11)))
+autoplot(window(trees.ts,start=c(1900,1),end=c(1999,11)))
+```
+
+```{solution,eval=FALSE}
+They look the exact same
+```
+
+
+* **Problem 12**: Finally, aggregate the data into 20-year blocks using the mean. Note that there are 0.05 20-year blocks in each year. Save the results as `trees.ts.20` and plot them. Do you see any patterns in this graph?
+
+```{r}
+trees.ts.20<-aggregate(trees.ts,nfrequency=1/20,FUN= mean )
+autoplot(trees.ts.20)
+```
+
+```{r}
+.AutogradeProblem12()
+```
+
+```{solution,eval=FALSE}
+It looks a lot different and you can see it go up and down
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 11.1.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

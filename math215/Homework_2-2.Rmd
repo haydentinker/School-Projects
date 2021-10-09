@@ -1,0 +1,110 @@
+---
+title: "Homework Assignment 2-1"
+author: "MATH 215"
+abstract: "In this assignment we will explore the notions of spread and probability.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_2-2.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Electricity Rates**
+
+The questions below involve a dataset showing US electric rates by zipcode.  After loading the dataset, you may wish to *View* it to get an overview of its contents.
+
+* **Problem 1**: Create a data frame named `ER` by loading this [CSV file](https://openei.org/doe-opendata/dataset/e48fb31b-2fc4-4e2d-985a-15b358a4f88c/resource/3e21ff86-54b4-489b-9797-821da284e2cb/download/iouzipcodes2016.csv) containing the electricity rates by zip code for the year 2016.  Be sure to use the parameter `stringsAsFactors=FALSE` to prevent strings from being loaded as factors as discussed in your text.
+
+```{r}
+```
+
+
+2. Compute the mean and standard deviation of the commercial rate (variable comm_rate) and residential rate (variable res_rate).  Name these variables mean.comm_rate, stdev.comm_rate, mean.res_rate, and stdev.res_rate and print them out.  Which type of rate has more variability between zipcodes? Explain.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 3**: Compute the median and interquartile range (IQR) of the commercial and residential rates. Store them in the variables median.comm_rate, iqr.comm_rate, median.res_rate, and iqr.res_rate and then print them out.  Do these statistics lead you to the same conclusion as above?
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 4**: Create a frequency distribution for the commercial rates using the cut function and 30 bins.  Use this to identify any potential outliers.  Assign this table to the variable tab.comm_rate and print it out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 5**: Recompute the mean and standard deviation and the median and IQR of the commercial rates without those outliers.  Save these values in variables of the same name as before, but with `.no_outliers` tacked onto the end.  For example, use mean.comm_rate.no_outliers for the mean of the commercial rate without any outliers.  Also print out the values and then comment on how and how much they have changed.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+```{solution,eval=FALSE}
+```
+
+
+* **Problem 6**: Finally, create a histogram for your cleaned data set (without the outliers) for several different numbers of bins.  After reviewing these, describe the shape of the distribution.
+    
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 2.2.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

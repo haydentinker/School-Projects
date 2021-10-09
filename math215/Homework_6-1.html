@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Homework Assignment 6-1" />
+<meta property="og:type" content="book" />
+
+
+
+
+
+<meta name="author" content="In this assignment we will use built-in R functions to test hypotheses about binomial distributions and distributions of sample proportions." />
+
+
+
+<meta name="description" content="Homework Assignment 6-1">
+
+<title>Homework Assignment 6-1</title>
+
+<script src="libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="libs/navigation-1.1/tabsets.js"></script>
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container-fluid main-container">
+
+
+<div class="row">
+<div class="col-sm-12">
+<!--bookdown:toc:end-->
+<!--bookdown:toc:start-->
+</div>
+</div>
+<div class="row">
+<div class="col-sm-12">
+<div id="header">
+<h1 class="title">Homework Assignment 6-1</h1>
+<h4 class="author"><em>In this assignment we will use built-in R functions to test hypotheses about binomial distributions and distributions of sample proportions.<br /><br /></em></h4>
+</div>
+<style type="text/css">
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+</style>
+<p><strong>Binomial Distribution</strong></p>
+<p>The general consensus is that during the 1980s about 5% of the nation’s children were diagnosed with autism. Some claim that an increase in certain chemicals in the environment has lead to an increase in autism rates since then. In this portion of the assignment, we will investigate this claim.</p>
+<ul>
+<li><strong>Problem 1</strong>: Formulate an appropriate hypothesis to test this claim. Give both the null and alternative hypotheses in the solution area below.</li>
+</ul>
+
+<div class="solution">
+ <span class="solution"><em>Solution. </em></span> Null: Roughly 5% of the nation’s children have autism
+Alternative: More than 5% of the nation’s children have autism
+</div>
+
+<ul>
+<li><strong>Problem 2</strong>: A recent study examined 384 children and found that 46 showed signs of autism. Perform a test of your hypothesis using the R function <code>binom.test</code>. Save the results of this test in the variable <code>test1.results</code> and print them out. Be sure you know where to find the p-value of the test!</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>test1.results &lt;-<span class="st"> </span><span class="kw">binom.test</span>(<span class="dt">x=</span><span class="dv">46</span>,<span class="dt">n=</span><span class="dv">384</span>,<span class="dt">p=</span><span class="fl">0.05</span>,<span class="dt">alternative =</span><span class="st">&quot;greater&quot;</span> )</span>
+<span id="cb1-2"><a href="#cb1-2"></a>test1.results</span></code></pre></div>
+<pre><code>## 
+##  Exact binomial test
+## 
+## data:  46 and 384
+## number of successes = 46, number of trials = 384, p-value = 5.56e-08
+## alternative hypothesis: true probability of success is greater than 0.05
+## 95 percent confidence interval:
+##  0.09349103 1.00000000
+## sample estimates:
+## probability of success 
+##              0.1197917</code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">.AutogradeProblem02</span>()</span></code></pre></div>
+<pre><code>## [1] &quot;Checkpoint 1 Passed: The variable test1.results is defined and contains the results of a hypothesis test&quot;
+## [1] &quot;Checkpoint 2 Passed: The correct alternative hypothesis was given&quot;
+## [1] &quot;Checkpoint 3 Passed: The correct p-value was computed&quot;
+## 
+## Problem 1
+## Checkpoints Passed: 3
+## Checkpoints Errored: 0
+## 100% passed | Score: 1/1</code></pre>
+<ul>
+<li><strong>Problem 3</strong>: What do you conclude based on the p-value above? Indicate how the p-value you found leads to your conclusion.</li>
+</ul>
+
+<div class="solution">
+ <span class="solution"><em>Solution. </em></span> The p-value is less than the significance value so we reject the null hypothesis.
+</div>
+
+<ul>
+<li><p><strong>Problem 4</strong>: Suppose a follow student conducts the same test you just did and makes the following statement.</p>
+<ul>
+<li><em>This test proves that an increase in environmental chemicals has lead to an increase in autism.</em></li>
+</ul></li>
+</ul>
+<p>Critique this statement.</p>
+
+<div class="solution">
+ <span class="solution"><em>Solution. </em></span>  It doesn’t prove anything. It is about determining if we reject or fail to reject the null. The most we can say is we reject the null hypothesis.
+</div>
+
+<p><strong>Vehicle Emissions</strong></p>
+<p>A company with a fleet of 200 cars found that the emissions system on 8 of the 24 cars tested failed to meet pollution guidelines. We wish to test the claim that 20% of the cars in the fleet fail to meet pollution guidelines.</p>
+<ul>
+<li><strong>Problem 5</strong>: First state the null and alternative hypotheses.</li>
+</ul>
+
+<div class="solution">
+ <span class="solution"><em>Solution. </em></span> Null: Less or greater than 20% of the cars fail to meet pollution guidelines
+Alternative: 20% fail to meet the guideline
+</div>
+
+<ul>
+<li><strong>Problem 6</strong>: Next, use the <code>binom.test</code> function to complete a hypothesis test. Save the results in the variable <code>test2.results</code> and print them out.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>test2.results &lt;-<span class="st"> </span><span class="kw">binom.test</span>(<span class="dt">x=</span><span class="dv">8</span>,<span class="dt">n=</span><span class="dv">24</span>,<span class="dt">p=</span><span class="fl">0.20</span>,<span class="dt">alternative =</span> <span class="kw">c</span>(<span class="st">&quot;two.sided&quot;</span>,<span class="st">&quot;less&quot;</span>,<span class="st">&quot;greater&quot;</span>))</span>
+<span id="cb5-2"><a href="#cb5-2"></a>test2.results</span></code></pre></div>
+<pre><code>## 
+##  Exact binomial test
+## 
+## data:  8 and 24
+## number of successes = 8, number of trials = 24, p-value = 0.1222
+## alternative hypothesis: true probability of success is not equal to 0.2
+## 95 percent confidence interval:
+##  0.1563023 0.5532196
+## sample estimates:
+## probability of success 
+##              0.3333333</code></pre>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">.AutogradeProblem06</span>()</span></code></pre></div>
+<pre><code>## [1] &quot;Checkpoint 1 Passed: The variable test2.results is defined and contains the results of a hypothesis test&quot;
+## [1] &quot;Checkpoint 2 Passed: The correct alternative hypothesis was given&quot;
+## [1] &quot;Checkpoint 3 Passed: The correct p-value was computed&quot;
+## 
+## Problem 2
+## Checkpoints Passed: 3
+## Checkpoints Errored: 0
+## 100% passed | Score: 1/1</code></pre>
+<ul>
+<li><strong>Problem 7</strong>: Finally, state your conclusion.</li>
+</ul>
+
+<div class="solution">
+ <span class="solution"><em>Solution. </em></span> We fail to reject the null.
+</div>
+
+<p><strong>Racial Profiling Test</strong></p>
+<p>We now revisit the racial profiling data set from the city of Austin Texas. This time we will examine all 12k rows of the arrest data set. Use the following commands to download this data.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>df &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&quot;https://data.austintexas.gov/resource/x4p3-hj3y.csv?$limit=20000&amp;$$app_token=ssRpFGv9pqU2dcW0St7dxbyD5&quot;</span>,<span class="dt">stringsAsFactors=</span>F)</span></code></pre></div>
+<ul>
+<li><strong>Problem 8</strong>: Take a random sample of 100 of the apd_race_desc values from this data set and save it to the variable <code>my.sample</code>. Then determine the proportion of individuals in this data set who were identified as white (apd_race_desc equals “WHITE”). Save that proportion to the variable <code>prop.white</code> and print it out. Do not change the <code>set.seed</code> command, and be sure to enter your code below that line.</li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">set.seed</span>(<span class="dv">100</span>)</span>
+<span id="cb10-2"><a href="#cb10-2"></a>my.sample &lt;-<span class="st"> </span><span class="kw">sample</span>(df<span class="op">$</span>apd_race_desc,<span class="dv">100</span>)</span>
+<span id="cb10-3"><a href="#cb10-3"></a>prop.white&lt;-<span class="dv">0</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">100</span>){</span>
+<span id="cb10-5"><a href="#cb10-5"></a>  <span class="cf">if</span>(my.sample[i]<span class="op">==</span><span class="st">&quot;WHITE&quot;</span>){</span>
+<span id="cb10-6"><a href="#cb10-6"></a>  prop.white&lt;-prop.white<span class="op">+</span><span class="dv">1</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a>  }</span>
+<span id="cb10-8"><a href="#cb10-8"></a>}</span>
+<span id="cb10-9"><a href="#cb10-9"></a>prop.white&lt;-<span class="st"> </span>prop.white <span class="op">/</span><span class="dv">100</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">.AutogradeProblem08</span>()</span></code></pre></div>
+<pre><code>## [1] &quot;Checkpoint 1 Passed: The variable my.sample contains 100 character values&quot;
+## [1] &quot;Checkpoint 2 Passed: The values in your sample appear to be correct&quot;
+## [1] &quot;Checkpoint 3 Passed: The variable prop.white is defined and numeric&quot;
+## [1] &quot;Checkpoint 4 Passed: The proportion is correct&quot;
+## 
+## Problem 3
+## Checkpoints Passed: 4
+## Checkpoints Errored: 0
+## 100% passed | Score: 1/1</code></pre>
+<ul>
+<li><strong>Problem 9</strong>: Formulate the hypotheses that would be needed to test the claim that less than 40% of those arrested in Austin are identified as white. Write out both the null and alternative hypotheses.</li>
+</ul>
+
+<div class="solution">
+ <span class="solution"><em>Solution. </em></span> Null: At least 40% of those arrested are white
+Alternative: Less than 40% of those arrested are white
+</div>
+
+<ul>
+<li><p><strong>Problem 10</strong>: Use the R function <code>prop.test</code> to test your hypothesis about this proportion. Save the results in the variable <code>test3.results</code>, print them out, and then indicate at which levels below (if any) your test is significant (i.e. would lead you to reject the null hypothesis).</p>
+<ul>
+<li>1% = Highly Significant</li>
+<li>5% = Statistically Significant</li>
+<li>10% = Tending Towards Significance</li>
+</ul></li>
+</ul>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>test3.results &lt;-<span class="st"> </span><span class="kw">prop.test</span>(<span class="dt">x=</span><span class="dv">30</span>,<span class="dt">n=</span><span class="dv">100</span>,<span class="dt">p=</span>.<span class="dv">40</span>,<span class="dt">alternative=</span> <span class="st">&quot;less&quot;</span>)</span>
+<span id="cb13-2"><a href="#cb13-2"></a>test3.results</span></code></pre></div>
+<pre><code>## 
+##  1-sample proportions test with continuity correction
+## 
+## data:  30 out of 100, null probability 0.4
+## X-squared = 3.7604, df = 1, p-value = 0.02624
+## alternative hypothesis: true p is less than 0.4
+## 95 percent confidence interval:
+##  0.0000000 0.3850393
+## sample estimates:
+##   p 
+## 0.3</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">.AutogradeProblem10</span>()</span></code></pre></div>
+<pre><code>## [1] &quot;Checkpoint 1 Passed: The variable test3.results is defined and contains the results of a hypothesis test&quot;
+## [1] &quot;Checkpoint 2 Passed: The correct alternative hypothesis was given&quot;
+## [1] &quot;Checkpoint 3 Passed: The correct p-value was computed&quot;
+## 
+## Problem 4
+## Checkpoints Passed: 3
+## Checkpoints Errored: 0
+## 100% passed | Score: 1/1</code></pre>
+
+<div class="solution">
+ <span class="solution"><em>Solution. </em></span> We reject the null hypothesis
+</div>
+
+<ul>
+<li><strong>Problem 11</strong>: How repeatable is your test? Write a loop that repeats the sample/test procedure above 500 times and keeps track of how many times you would reject the null hypothesis at each significance level in a vector named <code>rejected</code> where the first component counts the number of times you’d reject at the 0.10 significance level, the 2nd component at the 0.05 significance level, and the third at the 0.010 significance level. Print out the proportion of tests that led to rejection at each significance level. Hint: If you assign the results of <code>prop.test</code> to a variable like <code>result</code> then you can access the p-value using <code>result$p.value</code>.</li>
+</ul>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>rejected&lt;-<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">500</span>){</span>
+<span id="cb17-3"><a href="#cb17-3"></a>  a.sample &lt;-<span class="st"> </span><span class="kw">sample</span>(df<span class="op">$</span>apd_race_desc,<span class="dv">100</span>)</span>
+<span id="cb17-4"><a href="#cb17-4"></a></span>
+<span id="cb17-5"><a href="#cb17-5"></a>  prop.white2&lt;-<span class="dv">0</span></span>
+<span id="cb17-6"><a href="#cb17-6"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">100</span>){</span>
+<span id="cb17-7"><a href="#cb17-7"></a>  <span class="cf">if</span>(a.sample[i]<span class="op">==</span><span class="st">&quot;WHITE&quot;</span>){</span>
+<span id="cb17-8"><a href="#cb17-8"></a>  prop.white2&lt;-prop.white2<span class="op">+</span><span class="dv">1</span></span>
+<span id="cb17-9"><a href="#cb17-9"></a>  }</span>
+<span id="cb17-10"><a href="#cb17-10"></a>}</span>
+<span id="cb17-11"><a href="#cb17-11"></a>results &lt;-<span class="st"> </span><span class="kw">prop.test</span>(<span class="dt">x=</span>prop.white2,<span class="dt">n=</span><span class="dv">100</span>,<span class="dt">p=</span>.<span class="dv">40</span>,<span class="dt">alternative=</span> <span class="st">&quot;less&quot;</span>)</span>
+<span id="cb17-12"><a href="#cb17-12"></a><span class="cf">if</span>(results[<span class="dv">3</span>]<span class="op">&lt;</span><span class="fl">0.10</span>){</span>
+<span id="cb17-13"><a href="#cb17-13"></a>  rejected[<span class="dv">3</span>]&lt;-rejected[<span class="dv">3</span>]<span class="op">+</span><span class="dv">1</span></span>
+<span id="cb17-14"><a href="#cb17-14"></a>  }</span>
+<span id="cb17-15"><a href="#cb17-15"></a><span class="cf">if</span>(results[<span class="dv">3</span>]<span class="op">&lt;</span><span class="fl">0.050</span>){</span>
+<span id="cb17-16"><a href="#cb17-16"></a>  rejected[<span class="dv">2</span>]&lt;-rejected[<span class="dv">2</span>]<span class="op">+</span><span class="dv">1</span></span>
+<span id="cb17-17"><a href="#cb17-17"></a>  }</span>
+<span id="cb17-18"><a href="#cb17-18"></a><span class="cf">if</span>(results[<span class="dv">3</span>]<span class="op">&lt;</span><span class="fl">0.010</span>){</span>
+<span id="cb17-19"><a href="#cb17-19"></a>  rejected[<span class="dv">1</span>]&lt;-rejected[<span class="dv">1</span>]<span class="op">+</span><span class="dv">1</span></span>
+<span id="cb17-20"><a href="#cb17-20"></a>    }</span>
+<span id="cb17-21"><a href="#cb17-21"></a></span>
+<span id="cb17-22"><a href="#cb17-22"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">.AutogradeProblem11</span>()</span></code></pre></div>
+<pre><code>## [1] &quot;Checkpoint 1 Passed: The vector rejected is defined and holds three values&quot;
+## [1] &quot;Checkpoint 2 Passed: The number of statistically significant rejected is correct&quot;
+## [1] &quot;Checkpoint 3 Passed: The number of rejected tending towards significance is correct&quot;
+## 
+## Problem 5
+## Checkpoints Passed: 3
+## Checkpoints Errored: 0
+## 100% passed | Score: 1/1</code></pre>
+<ul>
+<li><strong>Problem 12</strong>: What does the result above tell us about or testing procedure? What changes might you suggest?</li>
+</ul>
+
+<div class="solution">
+ <span class="solution"><em>Solution. </em></span> We did a lot of trial and error. We could make a loop like we did and increase the amount of 100 samples we take. We will get better results when we have a smaller significance level.
+</div>
+
+<p><strong>End of Assignment</strong></p>
+<p>That’s the end of homework assignment 6.1. You can now compute your total score on the autograded questions by running the code below.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">.AutograderMyTotalScore</span>()</span></code></pre></div>
+<pre><code>##                 
+## Problem 1:   1/1
+## Problem 2:   1/1
+## Problem 3:   1/1
+## Problem 4:   1/1
+## Problem 5:   1/1
+## Total Score: 5/5</code></pre>
+<p style="text-align: center;">
+</p>
+</div>
+</div>
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+$(document).ready(function () {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+});
+
+</script>
+
+</body>
+</html>

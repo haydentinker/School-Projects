@@ -1,0 +1,184 @@
+---
+title: "Homework Assignment 12"
+author: "In this assignment, we will examine various ways to load data into R.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library(forecast)
+source(here("homework","autograding","Homework_12.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Employee Data -- SQL**
+
+The first method for loading data will be via an SQL database.  A test database has been set up for you to use on a local server. 
+
+
+* **Problem 1:** Connect to the server using the `dbConnect` function from the `RMySQL` package. The IP address of the server is 172.27,8.150, the user on the server is "adminer" with password "ABC123xyz" and the database name is "employees". Save your connection object as `our.db`.
+
+```{r}
+library(RMySQL)
+our.db <- dbConnect(MySQL(), user='adminer', password='ABC123xyz', dbname='employees', host='172.27.8.150')
+```
+
+
+* **Problem 2**: Next, let's look at the tables that are in this database. Use the `dbListTables` command to do this, save the list of tables as `our.tables` and print them out.
+
+```{r}
+our.tables<-dbListTables(our.db)
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Next, let's list the fields (columns) that are in each table.  The first one is done for you.
+
+```{r}
+dbListFields(our.db,"current_dept_emp")
+```
+
+
+* **Problem 4**: Download the gender data for the rows in the *employees* table.  Use the `table` function to create a frequency distribution of gender.  Save it as `employee.gender` and print it out.
+
+```{r}
+results<-dbSendQuery(our.db,"SELECT gender FROM employees")
+gender.df<-fetch(results)
+dbClearResult(results)
+employee.gender<-table(gender.df)
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**": Next get the average salary from the *salaries* table in this database.  Save it as `mean.salary` and print it out.
+
+```{r}
+results<-dbSendQuery(our.db,"SELECT * FROM salaries")
+mean.df<-fetch(results)
+dbClearResult(results)
+mean.salary<-mean(mean.df$salary)
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+* **Problem 6**: Now construct a scatter plot of the average *salary* (y-axis) against year component of the *from_date* field (x-axis).  You can use the command `date_format(from_date,'%Y')` in your SQL query to get just the year.
+
+```{r}
+results<-dbSendQuery(our.db,"SELECT date_format(from_date,'%Y') FROM salaries")
+dates.df<-fetch(results)
+dbClearResult(results)
+dates.vec<-unlist(dates.df)
+names(mean.df)[2]<-"salary"
+names(mean.df)[3]<-"from_date"
+mean.df$from_date<-dates.vec
+colnames(mean.df)
+plot(salary~from_date,data=mean.df)
+
+```
+
+
+**iTunes -- JSON**
+
+Another popular data format is JSON (JavaScript Object Notation).  This format is used for exchanging data seamlessly on the web.  The command below will download a list of all entities referencing the Beetles in JSON format.
+
+```{r}
+library(RCurl)
+my.json <- getURL("https://itunes.apple.com/search?term=beetles&limit=1000")
+
+```
+
+
+* **Problem 7**:.  What do the contents of the `my.json` variable look like?
+
+```{solution,eval=FALSE}
+It looks like a bunch of songs and information.
+```
+
+
+* **Problem 8**: Use the `fromJSON` function from the `jsonlite` library to parse this into a data frame called `beatles`.  Hint: You really want the *results* element of the list that `fromJSON` creates.
+
+```{r}
+library(jsonlite)
+my.list<-fromJSON(my.json)
+beatles<-data.frame(my.list$results)
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+* **Problem 9**: Compute the mean and variance of the track length (stored in `trackTimeMillis`) of a beatles song in seconds.  Note that times are given in milliseconds.  Save them as `beatles.mean` and `beatles.var` and print them out.
+
+```{r}
+#We talked to Professor Duncan and the API has changed causing the numbers to be off by a little bit.
+beatles.mean<-mean(beatles$trackTimeMillis/1000)
+beatles.var<-var(beatles$trackTimeMillis/1000)
+```
+
+```{r}
+.AutogradeProblem09()
+```
+
+
+* **Problem 9**: Construct a histogram of the track length in seconds (note that it is given in milliseconds).
+
+```{r}
+hist(beatles$trackTimeMillis/1000)
+```
+
+
+* **Problem 10**: Construct side-by-side box plots of the track length in seconds for the songs in each collection, as defined by the *collectionId*.
+
+```{r}
+boxplot(trackTimeMillis/1000~collectionId,data=beatles)
+```
+
+
+* **Problem 11**: Apply one other data analysis technique to the data in the `beatles` data frame.  Describe what you learned from this technique.
+
+```{r}
+plot(beatles$trackTimeMillis/1000)
+```
+
+```{solution,eval=FALSE}
+Answers will vary.
+The scatter plot was good to visualize the times.
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 12.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

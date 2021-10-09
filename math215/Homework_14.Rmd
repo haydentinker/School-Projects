@@ -1,0 +1,165 @@
+---
+title: "Homework Assignment 14"
+author: "In this homework assignment, we will look at examples of cleaning data sets using various techniques.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library(forecast)
+source(here("homework","autograding","Homework_14.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**Penny Dates: Asserts**
+
+In MATH 106: Intro to Statistics, one of the labs that students must complete involves taking multiple samples of 40 pennies from a bag of several thousand pennies.  The students record the dates on each of the pennies and enter them into a spreadsheet.  Below is an actual data set recorded in one of these labs.
+
+```{r}
+df <- read.csv("https://webwork.wallawalla.edu/courses/math215/data/pennies.csv",stringsAsFactors=F)
+```
+
+
+1. Use the `assert` function from the `assertr` package to make the assertion that the data in the X1-X40 columns is numeric data (as we would expect years to be).  Fix any errors you find in a reasonable way, and re-verify the assertion.
+
+```{r}
+library(assertr)
+#assert(df,is.numeric,colnames(df[,-1]))
+df[,-1]<-as.numeric(unlist(df[,-1]))
+df[232,"X35"]<-1997
+```
+
+```{r}
+assert(df,is.numeric,colnames(df[,-1]))
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+
+* **Problem 2**: Next, assert that the dates are in a reasonable range, say from 1940 through 2019.  Again, fix any errors that you find, re-verify the assertion, and explain what you did to fix the errors.
+
+```{r}
+#df  <-assert(df,within_bounds(1940,2019),colnames(df[,-1]))
+#df.2<-df[,-1]
+#df.remove<-df.2<1940
+#df<-df[-df.remove]
+```
+
+```{r}
+for(i in 2:41){
+  df$X3[df$X3<1916]<-NA
+}
+```
+
+```{solution,eval=FALSE}
+I found the rows aren't within the range and just removed them
+```
+
+
+* **Problem 3**: Finally, create a chain of your two assertions using the `magrittr` package and store it in a variable `CHECKS`.  Run this on your new data frame to verify that it still passes both assertions.
+
+```{r}
+library(magrittr)
+CHECKS<- . %>%
+  assert(is.numeric,colnames(df[,-1])) %>%
+  assert(within_bounds(1950,2019),colnames(df[,-1]))
+df<-df%>%CHECKS
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+**WWU Schedule: Regular Expressions**
+
+In this section we will apply regular expressions to manipulate and normalize data values in the WWU class schedule.
+
+```{r}
+wwu <- read.csv("https://webwork.wallawalla.edu/courses/math215/data/wwu_w21.csv",stringsAsFactors=FALSE)
+```
+
+
+* **Problem 4**: There are several different classes that include the word Internship in their *Course.Title*.  Find their names and the total enrollment in those classes.  You will want to use the `str_subset` `str_detect` functions from the `stringr` package to do this. Save the names of the classes to the variable `internship.names` and the total enrollment to the variable `internship.enrollment` and print both out.
+
+```{r}
+library(stringr)
+internship.names<-wwu$Course.Title%>% str_subset("Internship")
+internship.names
+
+internship.enrollment<-sum(wwu$Enroll.Count[wwu$Course.Title %>% str_detect("Internship")],na.rm=TRUE)
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: The `Fee` column contains any course fees.  Normalize that column so that it contains numeric values only.  If a fee is given as a per-unit value, keep that same per-unit number.  If no fee is indicated, make the fee value zero.  You may find the `str_replace` function helpful here.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+* **Problem 6**: Several courses have a range of credits (*Cr*) available.  Replace those with the average number of credits for which the course can be taken and convert the *Cr* column to a numeric variable.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Finally, calculate the number of student credit hours (number of students times number of credits) for courses that meet after 1:00 on Friday afternoons.  Save this number to `friday.afternoon.credit.hours` and print it out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+* **Problem 8**: Use the `group_by` and `summarize` commands from the `dplry` package to create a data frame called `wwu.total.enrolled` that has a column called `course` containing the course prefix and course number separated by a space (e.g. "MATH 215") and a second column named `enrolled` containing the total number of students enrolled in all sections of that class.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem08()
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 14.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```

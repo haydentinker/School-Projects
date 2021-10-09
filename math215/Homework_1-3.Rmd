@@ -1,0 +1,132 @@
+---
+title: "Homework Assignment 1-3"
+author: "MATH 215"
+abstract: "In this assignment we practice working with matrices and data frames, two of the most common ways to store data sets in R.<br /><br />"
+output:
+  bookdown::html_book
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+source(here("homework","autograding","Homework_1-3.tests.R"))
+.AutograderInit()
+```
+
+```{css echo=FALSE}
+pre {
+  margin-left: 40px;
+}
+div.sourceCode {
+  margin-left: 40px;
+}
+div.solution {
+  margin-left: 40px;
+  border: 1px dashed red;
+  padding: 2px;
+}
+span.solution { display: block; }
+li { margin-top: 20px; }
+li li { margin-top: 2px; }
+```
+
+
+**The WorldPhones Data Set**
+
+The *WorldPhones* built-in dataset is a matrix showing the number of telephones in various regions of the world (in thousands) for selected years between 1951 and 1961.  Use a single R command to complete the following tasks with this dataset (except printing, which can be on another line) and then answer the question in the provided solution blank.  You may wish to explore this matrix on the interactive console before entering your solutions below.
+
+* **Question 1**: Name a vector Europe.Phones and set it to the number of phones in Europe for each of the years in this dataset.  Is this a named or unnamed vector, and what does that mean?
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+```
+
+```{r}
+.AutogradeProblem01()
+```
+
+
+* **Problem 2**: Find the total number of phones in the world (NOT in thousands) in 1959.  Assign this to the variable Phones.in.1959 and print the value out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem02()
+```
+
+
+* **Problem 3**: Create two new matrices: WHPhones and EHPhones, containing the portions of this data that beling to the western and eastern hemispheres respectively.  Keep the regions such as North and South America in the same order in which they appear in the original matrix.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem03()
+```
+
+
+***The mtcars Data Frame***
+
+The mtcars built-in dataset is a dataframe containing information extracted from the 1974 Motor Trend magazine comparing fuel consumption and 10 other characteristics for 32 automobiles.  Read about it in the help window before completing the following tasks.
+
+* **Problem 4**: What is the average displacement for all cars in this dataset?  Assign it to the variable avg.disp and print it out.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem04()
+```
+
+
+* **Problem 5**: The following command is supposed to return a dataframe containing only the 4-cylindar cars from the full mtcars dataframe, but it does not work.  What is wrong with it?  Write a corrected version in the second R code chunk assigning this dataframe to the variable mtcars.4cyl and printing it out.  Hint: Once you've determined why the command below doesn't work, comment it out so that you can use `Run All Chunks` and you can Knit the notebook.
+
+```{r}
+mtcars[mtcars$cyl=4,]
+```
+
+```{solution,eval=FALSE}
+Your Answer Here
+```
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem05()
+```
+
+
+* **Problem 6**: Find the average fuel efficiency (mpg) for cars with 4 cylinders vs. that for cars with more than 4 cylinders.  Store these in the variables avg.mpg.4cyl and ave.mpg.morecyl and print them out.  Do your results seem reasonable?  Explain.
+
+```{r}
+```
+
+```{solution,eval=FALSE}
+Your Answer Here
+```
+
+```{r}
+.AutogradeProblem06()
+```
+
+
+* **Problem 7**: Find the maximum weight of the cars which have fewer gears than carburetors.  Store this in the varible my.max.wt and print it out.  Hint: first figure out how to build a logical vector for the data frame rows which match this condition.
+
+```{r}
+```
+
+```{r}
+.AutogradeProblem07()
+```
+
+
+**End of Assignment**
+
+That's the end of homework assignment 1.3.  You can now compute your total score on the autograded questions by running the code below.
+
+```{r}
+.AutograderMyTotalScore()
+```
