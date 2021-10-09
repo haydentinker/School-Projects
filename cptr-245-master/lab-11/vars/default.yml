@@ -1,0 +1,7 @@
+---
+app_user: "tinkha"
+http_host: "tinkha.cs.wallawalla.edu"
+http_conf: "tinkha.conf"
+http_port: "80"
+disable_default: true
+...
