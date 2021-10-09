@@ -1,0 +1,150 @@
+---
+title: "CPTR330 -- S21"
+author: Hayden Tinker
+date: 4-28-21
+course: CPTR330
+output: 
+  pdf_document:
+    number_section: false
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library("stringr")
+source(here("homework","autograding", paste(tail(str_split(getwd(), "/")[[1]], 1), "_tests.R", sep="")))
+.AutograderInit()
+```
+
+# ANN Algorithm
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Describe the algorithm and give a two of the strengths and two of the weaknesses.
+```
+The ANN function is an algorithm that is taken from the conceptual models of human brain activity. It is a very versatile learn that can be applied to nearly any learning task: classification, numeric prediction, and even unsupervised pattern recognition. The way I like to think of the ANN algorithm is you input things and then it gets the resulting signal by passing it through a hidden layer with weights and an activation function. Of course there can be multiple layers of nodes and mutiple nodes so it can get if you don't have a solid understanding of what's going on in the nodes.
+
+Strengths: 
+ 1. Can be adapted to classification or numeric prediction problems
+ 2. Capable of modeling more complex patterns than nearly any algorithm
+ 
+Weaknesses:
+ 1. Extremely computationally intensive and slow to train, particularly if the network topology is complex
+ 2. Verry prone to overfitting training data
+
+
+## Step 1 - Collect Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Give an overview of the data and its source.
+```
+
+This data is from the ML library of UCI and the data is from a radar system in Goose Bay. Basically the features are signals received from these radar atennas that they have. Received signals were processed using an autocorrelation function whose arguments are the time of a pulse and the pulse number. 
+```{r}
+ion.df<-read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/ionosphere/ionosphere.data",header=FALSE)
+```
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep1()
+```
+
+## Step 2 - Exploring And Preparing The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the data features and any transformations.
+```
+
+The features in this data set are continuous and they are taken from the Goose Bay and 2 attributes are taken per pulse number so there will 34 of these features and 35 col that is the label that tells us whether the results were good or bad.
+
+The only transformation that I did was turning the V35 column into a numeric because the cor function I will be using later requires the parameters to be numeric. I don't think this will be much of a problem because there are only two levels. I am not going to normalize the data because I looked at it and it mainly hovers around -1 to 1 and the textbook said that the data should be in that range so I felt comfortable not having to normalize it.
+
+```{r}
+str(ion.df)
+summary(ion.df$V35)
+ion.df$V35<-as.numeric(as.factor(ion.df$V35))
+```
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep2()
+```
+
+## Step 3 - Training A Model On The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain how to train the model.
+```
+
+To train the data I am just going to divide the data in a training and testing and below I used the neuralnet function to train the model. I also did it randomly so it could get some good numbers. I also chose to do 75% of the data in training instead of doing more since it is smaller than the one used in the text book.
+```{r}
+RNGversion("3.5.2");set.seed(201)
+train_sample<-sample(351,351*0.75)
+ion.train<-ion.df[train_sample,]
+ion.test<-ion.df[-train_sample,]
+
+```
+
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep3()
+```
+
+## Step 4 - Evaluating Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the model's performance. Highlight key results.
+```
+For this I am just going to compute the predictions and then use cor function to find the cor. Then I will plot the model to see the neural network. I am not going to add any hidden layers yet because I will save it for the improvement.
+```{r}
+library(neuralnet)
+ion.model<-neuralnet(V35~.,data=ion.train)
+ion.results<-compute(ion.model,ion.test)
+ion.predicted<-ion.results$net.result
+cor(ion.predicted,ion.test$V35)
+plot(ion.model)
+```
+
+
+I think that the model did pretty well for my first attempt. Having a cor of high 50s isn't too bad but I have some room for improvement.
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep4()
+```
+
+## Step 5 - Improving Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: What options can be used to improve the model? Explain and show.
+```
+
+For the first model I only had one hidden layer because that is the default. I feel like adding more hidden layers will make it a little bit slower but it should help boost the cor. I just have to becareful of not adding too many because that could cause it to overfit. I am going to choose 5 nodes with 2 layers because the textbook chose that. I wanted to add more layers because it helps with more difficult problems.
+```{r}
+
+ion.model.2<-neuralnet(V35~.,data=ion.train,hidden=c(5,5))
+ion.results.2<-compute(ion.model.2,ion.test)
+ion.predicted.2<-ion.results.2$net.result
+cor(ion.predicted.2,ion.test$V35)
+plot(ion.model.2)
+
+```
+
+The cor for the model really improved! The first model it was high 50s and now it is up to about 81% which I would say it pretty good because it covers 80% of the dataset essentially. I really liked seeing all the connections between the nodes. It is kind of pretty.
+
+For my next improvement I am going to try and change the activation function. I chose the tanh function because I saw the data ranged from -1 to 1 and I looked at the graph in the book and the tanh function looked somewhat similar so I was interested to see the results of it. I could have also gone for the saturated with that logic but I couldn't find the parameter that I was supposed to pass so I just went with tanh. I also kept the hidden layers from the previous improvement.
+
+```{r}
+
+ion.model.3<-neuralnet(V35~.,data=ion.train,hidden=c(5,5),act.fct="tanh")
+ion.results.3<-compute(ion.model.3,ion.test)
+ion.predicted.3<-ion.results.3$net.result
+cor(ion.predicted.3,ion.test$V35)
+plot(ion.model.3)
+```
+
+Unfortunately the cor got worse meaning our predictions are a bit worse. But they are still better than the first model which is a positive I suppose. It is intersting to see the different weights that are attached to the nodes though. With the worse results I guess my hypothesis about the tanh being better was wrong but that's ok.
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep5()
+```
+
+## Autograding
+
+```{r}
+.AutograderMyTotalScore()
+```

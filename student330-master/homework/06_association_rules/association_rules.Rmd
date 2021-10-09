@@ -1,0 +1,191 @@
+---
+title: "CPTR330 -- S21"
+author: Hayden Tinker
+date: 5-10-21
+course: CPTR330
+output: 
+  pdf_document:
+    number_section: false
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library("stringr")
+```
+
+# Market Basket Algorithm
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Describe the algorithm and give a two of the strengths and two of the weaknesses.
+```
+
+The Market Basket Algorithm is an algorithm that uses association rules to pick things out of a data set that often occur together. For example the dataset is transactions at a grocery store and this algorithm will look for things that are bought together. The one I will be uses is the apriori algorithm that helps to weed out some of the fluff. It essentially says if an item is infrequent then it will take it out because it cannot be frequently bought with another item. For measuring the rulee interest this algorith meeasures it by support and confidence. Support of an itemset or rules measures how frequently it occurs in data. Confidence is a measurement of its predictive power or accuracy. To see how well the model fit we will look at the lift. A large life value is therefore a strong indicator that a rule is important and reflects a true connection between the items.
+
+Strengths:
+1. Capable of working with large amounts of transactional data
+2. Results in rules that arer easy to understand
+3. Useful for data mining and discovering unexpected knowledge in databases
+Weaknesses:
+1. Not very helpful for small datasets
+2. Takes effort to separate the true insight from the common seense 
+3. Easy to draw spurious conclusions from random patterns
+
+## Step 1 - Collect Data
+
+
+Found the code to read the xlsx file here:
+https://readxl.tidyverse.org
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Give an overview of the data and its source.
+```
+"There are 541909 instances of 10 attributes. The attributes are listed below:
+
+- InvoiceNo: 6-digit number uniquely assigned to each transaction. Starting with a 'c' indicates a cancelled transaction.
+- StockCode: 5-digit number assigned to each unique product.
+- Description: Product name.
+- Quantity: Number of items purchased per transaction.
+- InvoiceDate: Date of transaction.
+- InvoiceTime: Time of transaction.
+- UnitPrice: Product price per unit in sterling.
+- CustomerID: 5-digit integer assigned to each customer.
+- Country: Name of the country where the customer resides."
+
+Got this from our teams chat.
+
+```{r}
+library(readxl)
+retail.xl<-read_xlsx("./Online Retail.xlsx")
+```
+
+
+
+
+## Step 2 - Exploring And Preparing The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the data features and any transformations.
+```
+
+For this section I mainly focused on following the websites provided in the readMe. First I looked to see if there are any NA's in the dataset then I removed it. Next I went through the InvoiceDate col and changed the format like the website said. Then I essentially added the dates back onto the dataframe and wrote it as a csv file. Next, I read the transactions like the website told me to.
+
+
+```{r}
+
+
+any(is.na(retail.xl))
+apply(retail.xl, 2, function(x) any(is.na(x)))
+sum(is.na(retail.xl$Description))
+sum(is.na(retail.xl$CustomerID))
+
+retail.noNA <- retail.xl[complete.cases(retail.xl), ]
+
+
+library(dplyr)
+
+#Converts character data to date. Store InvoiceDate as date in new variable
+retail.noNA$Date <- as.Date(retail.noNA$InvoiceDate)
+#Extract time from InvoiceDate and store in another variable
+TransTime<- format(retail.noNA$InvoiceDate,"%H:%M:%S")
+#Convert and edit InvoiceNo into numeric
+InvoiceNo <- as.numeric(as.character(retail.noNA$InvoiceNo))
+cbind(retail.noNA,TransTime)
+cbind(retail.noNA,InvoiceNo)
+
+library(plyr)
+#ddply(dataframe, variables_to_be_used_to_split_data_frame, function_to_be_applied)
+transactionData <- ddply(retail.noNA,c("InvoiceNo","Date"),
+                       function(df1)paste(df1$Description,
+                       collapse = ","))
+
+#set column InvoiceNo of dataframe transactionData  
+transactionData$InvoiceNo <- NULL
+#set column Date of dataframe transactionData
+transactionData$Date <- NULL
+#Rename column to items
+colnames(transactionData) <- c("items")
+#Show Dataframe transactionData
+transactionData
+write.csv(transactionData,"./market_basket_transactions.csv", quote = FALSE, row.names = FALSE)
+
+library(arules)
+tr <- read.transactions("./market_basket_transactions.csv", format = 'basket', sep=",")
+```
+
+The code below is just looking at the transactions. I found out the most frequent item is White hanging heart t-light holder followed by regency cake stand 3 tier. For the frequency plot I limited it to the top 20 because that would be a big cluster of stuff. Next for the image I did do the whole data set because I wanted to see the big picture and I felt like that would be a good way to see it. I see a line near the right side which means there is a common item. But it only covers a little bit of so I feel comfortable just admiring it. If it covered more of the graph that would cause problems because that item would be really frequent and that could mess up my rules later on.
+
+```{r}
+summary(tr)
+itemFrequency(tr[,1:5])
+itemFrequencyPlot(tr,topN=20)
+image(tr)
+```
+
+
+
+I saw this cool color frequency plot on the website that is basically the same as the one above and I wanted to try it out.
+```{r}
+library(RColorBrewer)
+itemFrequencyPlot(tr,topN=20,type="absolute",col=brewer.pal(8,'Pastel2'), main="Absolute Item Frequency Plot")
+
+```
+## Step 3 - Training A Model On The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain how to train the model.
+```
+
+The training is pretty simple you give the apriori function your sparse matrix, the support level, confidence level, and min length.
+```{r}
+
+transRules<-apriori(tr,parameter = list(support=0.006,confidence=.25,minlen=2))
+```
+
+
+## Step 4 - Evaluating Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the model's performance. Highlight key results.
+```
+
+So I got very very high lift values. In the book it was saying that something over 1 is a very high lift and my max was around 128 and the min was above 3. This means that the model did really well by just looking at the lift. But looking at the inspection I figured out what the problem was. This is where the weaknesses come in I suppose. It says that a bunch of herbs are bought frequently with each other and that is just common sense but this algorithm can't see that. But I still think the model did very well because of the overall good lift values.
+```{r}
+summary(transRules)
+inspect(sort(transRules,by="lift")[1:5])
+```
+
+
+## Step 5 - Improving Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: What options can be used to improve the model? Explain and show.
+```
+
+I am going to first do the section based off of what the books shows. First I did the inspect and found something that wasn't a rule based on the herbs. I found something on sugar and then I subsetted it based off of the sugar item. This could be like a company searching for the sugar rules and finding if there is anything interesting making the rules more actionable. 
+
+```{r}
+inspect(sort(transRules,by="lift")[60:70])
+sugarRules<-subset(transRules,items %in% "SUGAR")
+inspect(sugarRules)
+
+```
+
+To try and get rid of some of the noise I am going to bump up the paramters of confidence and support a bit more to see if anything happens. I chose this route because the only thing in the improvement section in the book was the subsetting that I did above. 
+
+```{r}
+
+transRules2<-apriori(tr,parameter = list(support=0.01,confidence=.30,minlen=2))
+summary(transRules2)
+inspect(sort(transRules2,by="lift")[1:5])
+```
+
+
+
+```{r}
+transRules3<-apriori(tr,parameter = list(support=0.02,confidence=.50,minlen=2))
+summary(transRules3)
+inspect(sort(transRules3,by="lift")[1:5])
+
+```
+Overall I think the second model I ran was the most successful because it cut down the long list of rules down to 198 rules. The problem with the last model is it cut it down too much. There were only 6 rules that made the cut after that which I think is a problem unless we are really trying to be very strict on our rules. I think the range of the lift for the second model was pretty acceptable too which is good and it left us a good amount of rules.
+

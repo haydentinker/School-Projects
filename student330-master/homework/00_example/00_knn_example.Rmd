@@ -1,0 +1,224 @@
+---
+title: "CPTR330 -- Homework 0 -- Example"
+author: Preston Carman
+date: April 3, 2019
+course: CPTR330
+output: 
+  pdf_document:
+    number_section: false
+---
+
+# k-Nearest Neighbors Algorithm 
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Describe the algorithm and give a few of the strengths and weaknesses.
+```
+
+The k-Nearest Neighbors algorithm is used for classification.
+The algorithm look at the examples k-nearest neighbors to classify the unlabeled example.
+The strengths come from its simplicity and lack of assumptions about the data.
+As a lazy learning algorithm, it does not have a abstraction or generalization process. 
+The algorithm just uses the initial data.
+On the flip side, the weakness fo this algorithm requires the selection of an appropriate k and has a slow classification phase.
+
+## Step 1 - Collect Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Give an overview of the data and its source.
+```
+
+The University of California, Irvine (UCI) has published a Machine Learning Repository (http://archive.ics.uci.edu/ml).
+Various entities have shared their dataset with UCI to make them publicly available.
+For our problem, University of Wisconsin has shared a Breast Cancer Database dataset (
+http://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/breast-cancer-wisconsin.data).
+Our book, Machine Learning with R, has provided a easy to download version.
+
+Consider a doctors office that performs a routine beast cancer screening for its patients.
+When the mass is detected, the doctor performs a procedure to take a sample of the mass to test for cancer.
+The result of the test will show if the mass is malignant or benign.
+A clinician must look at the mass under a microscope to determine this result.
+Automating this detection process could make the process more efficient and allow the doctor to spend more time treating the patient.
+
+## Step 2 - Exploring And Preparing The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the data features and any transformations.
+```
+
+The following command explore the csv dataset provided by the book.
+The output is limited to the first six variables.
+The truncated data is numeric and does not add value to the report. 
+
+```{r}
+wbcd <- read.csv("../book_resources/Chapter03/wisc_bc_data.csv", stringsAsFactors = FALSE)
+str(wbcd, list.len = 6)
+```
+
+The data has an *id* variable is used uniquely identify a patient which is not needed for the model.
+
+```{r}
+wbcd <- wbcd[-1]
+```
+
+Since we are predicting the outcome, the *diagnosis* variable is particularly interesting to us.
+The *table()* output shows the diagnosis results for masses: 357 benign and 212 malignant.
+
+```{r}
+table(wbcd$diagnosis)
+```
+
+The *diagnosis* variable must also be recoded to allow for more informative labels.
+
+
+```{r}
+wbcd$diagnosis <- factor(wbcd$diagnosis, 
+                         levels = c("B", "M"), 
+                         labels = c("Benign", "Malignant"))
+round(prop.table(table(wbcd$diagnosis)) * 100, digits = 1)
+```
+
+The remaining features are all numeric.
+Lets focus on two features, "area_mean", and "smoothness_mean" to get a better picture of data.
+
+```{r}
+summary(wbcd[c("area_mean", "smoothness_mean")])
+plot(wbcd[c("area_mean", "smoothness_mean")], pch=c(wbcd$diagnosis))
+legend('topright', legend=c("Benign", "Malignant"), pch=c(1,2), bty='o')
+```
+
+As you can see these features are all using a different scale.
+Lets normalize the numeric data for our model.
+The *normalize* function below is used on all variables except the *diagnosis*.
+
+```{r}
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+wbcd_n <- as.data.frame(lapply(wbcd[2:31], normalize))
+summary(wbcd_n[c("area_mean", "smoothness_mean")])
+```
+
+Now that the data has been normalized, we will create our training and test datasets.
+For this model, we will use the last 100 masses to test our model.
+
+```{r}
+# create training and test data
+wbcd_train <- wbcd_n[1:469, ]
+wbcd_test <- wbcd_n[470:569, ]
+# create labels for training and test data
+wbcd_train_labels <- wbcd[1:469, 1]
+wbcd_test_labels <- wbcd[470:569, 1]
+```
+
+## Step 3 - Training A Model On The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain how to train the model.
+```
+
+The k-nearest neighbors takes a training and test dataset, the train labels and a value for k. 
+A good starting value for *k* is typically the square root of the number of records. 
+In this case, the training dataset has 469 records so our starting *k* will be 21 (after rounding down).
+
+```{r}
+library(class)
+wbcd_test_pred <- knn(train = wbcd_train, 
+                      test = wbcd_test, 
+                      cl = wbcd_train_labels, 
+                      k = 21)
+```
+
+
+## Step 4 - Evaluating Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the model's performance. Highlight key results.
+```
+
+The model can produce four types of results: positive, false positive, negative, and false negative.
+The positive and negative results means the model was accurate.
+The false positive means the model say the cancer was malignant, but was in correct.
+In this case, the patient would have undergone treatment for a cancer which they did not actually posses.
+The false negative result means the patient was not alerted to the fact they had cancer.
+Neither of these false results are acceptable for our model.
+The *table()* function will give a simple layout of the results, but using *CrossTable* shows a more detailed breakdown.
+The *CrossTable* below shows the model correctly diagnosed 61 as Benign and 37 as Malignant.
+The model falsely reported Benign 2 times and 0 for Malignant, thus resulting in a 98% accuracy.
+
+```{r}
+library(gmodels)
+table(wbcd_test_labels, wbcd_test_pred)
+CrossTable(x = wbcd_test_labels, 
+           y = wbcd_test_pred, 
+           prop.chisq = FALSE)
+```
+
+
+## Step 5 - Improving Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: What options can be used to improve the model? Explain and show.
+```
+
+To improve the model, lets try two methods.
+First, we will switch the transformation to use a z-score standardization.
+While this option is not typical for k-nearest neighbors, the z-score standardization will allow extreme values to weigh the model differently, consider a mass that is growing uncontrollably.
+Second, the k-nearest neighbors algorithm takes an argument of *k*. 
+Lets consider various *k* values.
+
+```{r}
+# z-scale standardization
+wbcd_z <- as.data.frame(scale(wbcd[-1]))
+
+# confirm that the transformation was applied correctly
+summary(wbcd_z$area_mean)
+
+# create training and test datasets
+wbcd_train <- wbcd_z[1:469, ]
+wbcd_test <- wbcd_z[470:569, ]
+
+# re-classify test cases
+wbcd_test_pred <- knn(train = wbcd_train, 
+                      test = wbcd_test,
+                      cl = wbcd_train_labels, 
+                      k = 21)
+
+# Create the cross tabulation of predicted vs. actual
+CrossTable(x = wbcd_test_labels, 
+           y = wbcd_test_pred,
+           prop.chisq = FALSE)
+```
+
+The alternate transformation produced more false positives (5 total) then our original method.
+
+Now lets try different values for *k*.
+To keep the output down, all results will be shown with a simple table.
+For these checks, the percentages are not required to understand the performance. 
+
+```{r}
+# try several different values of k
+wbcd_train <- wbcd_n[1:469, ]
+wbcd_test <- wbcd_n[470:569, ]
+
+
+wbcd_test_pred <- knn(train = wbcd_train, test = wbcd_test, cl = wbcd_train_labels, k = 1)
+table(wbcd_test_labels, wbcd_test_pred)
+
+wbcd_test_pred <- knn(train = wbcd_train, test = wbcd_test, cl = wbcd_train_labels, k = 5)
+table(wbcd_test_labels, wbcd_test_pred)
+
+wbcd_test_pred <- knn(train = wbcd_train, test = wbcd_test, cl = wbcd_train_labels, k = 11)
+table(wbcd_test_labels, wbcd_test_pred)
+
+wbcd_test_pred <- knn(train = wbcd_train, test = wbcd_test, cl = wbcd_train_labels, k = 15)
+table(wbcd_test_labels, wbcd_test_pred)
+
+wbcd_test_pred <- knn(train = wbcd_train, test = wbcd_test, cl = wbcd_train_labels, k = 21)
+table(wbcd_test_labels, wbcd_test_pred)
+
+wbcd_test_pred <- knn(train = wbcd_train, test = wbcd_test, cl = wbcd_train_labels, k = 27)
+table(wbcd_test_labels, wbcd_test_pred)
+```
+
+The various values of *k* do not create a clearly better model.
+Most of the time the number of false diagnoses increases.

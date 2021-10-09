@@ -1,0 +1,176 @@
+---
+title: "CPTR330 -- S21"
+author: Hayden Tinker
+date: 5/17/2021
+course: CPTR330
+output: 
+  pdf_document:
+    number_section: false
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library("stringr")
+source(here("homework","autograding", paste(tail(str_split(getwd(), "/")[[1]], 1), "_tests.R", sep="")))
+.AutograderInit()
+```
+
+# K Means Algorithm
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Describe the algorithm and give a two of the strengths and two of the weaknesses.
+```
+K Means is an unsupervised machine learning algorithm that uses clustering which is a task that automatically divides the data into clusters, or groups of similar items. By unsupervised this means that the training data does not need to have labels. It does this by cluster similar data together similar to the KNN algorithm that uses distance to group things. 
+Strenghts:
+1. Uses simple principles that can be explained in non-statistical terms
+2. Highly flexible and can be adpated with simple adjustments to address nearly all of its shortcomings
+3. Performs well enough under many real-world use cases
+Weaknesses:
+1. Not as sophisticated as more modern clustering algorithms
+2. Because it uses an element of random chance, it is not guaranteeed to find the optimal set of clusters. 
+3. Requires a reasonable guess as to how many clusters naturally exist in the data.
+4. Not ideal for non-spherical clusters or clusters of widely varying density
+
+
+## Step 1 - Collect Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Give an overview of the data and its source.
+```
+This is data from our favorite UCI ML repo. This is a travel csv that has ratings from users that is on a scale of 1 to 5.
+Attribute 1 : Unique user id 
+Attribute 2 : Average ratings on churches 
+Attribute 3 : Average ratings on resorts 
+Attribute 4 : Average ratings on beaches 
+Attribute 5 : Average ratings on parks 
+Attribute 6 : Average ratings on theatres 
+Attribute 7 : Average ratings on museums 
+Attribute 8 : Average ratings on malls 
+Attribute 9 : Average ratings on zoo 
+Attribute 10 : Average ratings on restaurants 
+Attribute 11 : Average ratings on pubs/bars 
+Attribute 12 : Average ratings on local services 
+Attribute 13 : Average ratings on burger/pizza shops 
+Attribute 14 : Average ratings on hotels/other lodgings 
+Attribute 15 : Average ratings on juice bars 
+Attribute 16 : Average ratings on art galleries 
+Attribute 17 : Average ratings on dance clubs 
+Attribute 18 : Average ratings on swimming pools 
+Attribute 19 : Average ratings on gyms 
+Attribute 20 : Average ratings on bakeries 
+Attribute 21 : Average ratings on beauty & spas 
+Attribute 22 : Average ratings on cafes 
+Attribute 23 : Average ratings on view points 
+Attribute 24 : Average ratings on monuments 
+Attribute 25 : Average ratings on gardens
+
+
+```{r}
+travel.df<-read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/00485/google_review_ratings.csv")
+str(travel.df)
+travel.df$Category.11<-as.numeric(travel.df$Category.11)
+travel.df<-travel.df[,-c(1,26)]
+```
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep1()
+```
+
+## Step 2 - Exploring And Preparing The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the data features and any transformations.
+```
+I am need to check for missing values and decide what to do with them. First I removed the user ID col because I don't feel like I will get anything from that and the last category because it was almost completely NA. There was only 2 non NA values in that col so I felt like it was and OK thing to do just to get rid of it. As far as the only NA values, I used the imputation that is found in the book. I know there are other options that are sometimes better but since there was only 1 missing value in each of the cols I felt like I could just use the mean of the col to replace that NA. I almost feel like scaling the data wasn't really necessary because all of the numbers are on a range of 1 to 5 and I feel that is acceptable.
+```{r}
+apply(travel.df, 2, function(x) any(is.na(x)))
+sum(is.na(travel.df$Category.12))
+sum(is.na(travel.df$Category.24))
+sum(is.na(travel.df$Category.11))
+travel.df$Category.12<-ifelse(is.na(travel.df$Category.12),mean(travel.df$Category.12,na.rm = TRUE),travel.df$Category.12)
+travel.df$Category.24<-ifelse(is.na(travel.df$Category.24),mean(travel.df$Category.24,na.rm = TRUE),travel.df$Category.24)
+travel.df$Category.11<-ifelse(is.na(travel.df$Category.11),mean(travel.df$Category.11,na.rm = TRUE),travel.df$Category.11)
+apply(travel.df, 2, function(x) any(is.na(x)))
+sum(is.na(travel.df$Category.12))
+sum(is.na(travel.df$Category.24))
+sum(is.na(travel.df$Category.11))
+
+```
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep2()
+```
+
+## Step 3 - Training A Model On The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain how to train the model.
+```
+
+For training the model all I did was use the data frame that I changed a little from step two and threw it into the kmeans function from the stats library with a random seed so the results will be the same. I chose a k of 15 because I will try a smaller number in the improving model section.
+```{r}
+library(stats)
+RNGversion("3.5.2")
+set.seed(2345)
+travel_clusters<-kmeans(travel.df,15)
+
+```
+
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep3()
+```
+
+## Step 4 - Evaluating Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the model's performance. Highlight key results.
+```
+
+For the model performance, I think that this did pretty bad. There is a wide spread of the sizes across the clusters. I think that this has to do with the number of clusters. As far as the centers go though, I think that there are some interesting trends going on. Category 1 for example, ranged from about 1 to 2 until you reach to middle of the cols where it spikes up in category 9 to almost 5 which is the max for this centers. 
+```{r}
+
+travel_clusters$size
+
+travel_clusters$centers
+```
+
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep4()
+```
+
+## Step 5 - Improving Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: What options can be used to improve the model? Explain and show.
+```
+I am going to play around with the k to see if that will change some of the spread and centers.
+First I to lower the k down to 10. I think this will be a nice step because after I will go down to 5. Overall I think that there is more of a size difference in this model the min is 117 and the max is 962. That is a pretty big gap. I still see some of the same trends as I saw before which is what I expect because that is how it will cluster them.
+```{r}
+travel_clusters.2<-kmeans(travel.df,10)
+travel_clusters.2$size
+
+travel_clusters.2$centers
+```
+
+Even there is still a big difference between the max and min I think I like this model the best. I originially had this model first but moved it here because I thought it would be the best. It makes the most sense for me because the ratings are from 1 to 5 and I thought that the people who give 1's will most likely give a lot more 1's for the other ratings. I don't see a trend in the clusters that supports that hypothesis but I thought it would be cool. Overall I think the evaluating the model is a little weird because I just talk about the sizes and centers like in the book. It makes sense since this is an unsupervised learning. It is cool to see the differences.
+```{r}
+travel_clusters.3<-kmeans(travel.df,5)
+
+
+travel_clusters.3$size
+
+travel_clusters.3$centers
+```
+
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep5()
+```
+
+## Autograding
+
+```{r}
+.AutograderMyTotalScore()
+```

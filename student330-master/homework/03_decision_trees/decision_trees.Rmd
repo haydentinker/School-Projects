@@ -1,0 +1,261 @@
+---
+title: "CPTR330 -- S21"
+author: Hayden Tinker
+date: 4-19-21
+course: CPTR330
+output: 
+  pdf_document:
+    number_section: false
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library("stringr")
+source(here("homework","autograding", paste(tail(str_split(getwd(), "/")[[1]], 1), "_tests.R", sep="")))
+.AutograderInit()
+```
+
+# Decision Tree Algorithm
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Describe the algorithm and give a two of the strengths and two of the weaknesses.
+```
+
+
+The Decision tree algorithm is a machine learning algorithm that uses entropy to make decisions. Essentially it makes branches based off of the features and then after it reaches the end of the number allowed or when it decides it will predict what the label will be based off of how it goes down the branches. The way the algorithm uses entropy is by subtracting the Entropy of Split 1 and Split 2 and uses that to get how much to decide how much information will be gained through that split. It will then decide between the splits by figuring out the most information it can gain with that entropy formula.
+
+
+
+Weaknesses: 
+  1. Decision tree models are often biased toward splits on features having a large number of levels
+  2. It is easy to overfit or underfit that model
+  3. Can have trouble  modeling some relationships due to relaince on axis-parallel splits.
+  
+  
+Strengths:
+  1. An all-purpose classifer that does well on many types of problems
+  2. Highly automatic learning process, which can handle numeric or nominal features, as well as missing data
+  3. Excludes unimportant features
+  
+  
+
+## Step 1 - Collect Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Give an overview of the data and its source.
+```
+
+
+Once again we are pulling from UCI's ML repo.
+Here is the information from the website: 
+"This data set includes descriptions of hypothetical samples corresponding to 23 species of gilled mushrooms in the Agaricus and Lepiota Family (pp. 500-525). Each species is identified as definitely edible, definitely poisonous, or of unknown edibility and not recommended. This latter class was combined with the poisonous one. The Guide clearly states that there is no simple rule for determining the edibility of a mushroom; no rule like ``leaflets three, let it be'' for Poisonous Oak and Ivy."
+
+The variables are:
+
+1. cap-shape: bell=b,conical=c,convex=x,flat=f, knobbed=k,sunken=s 
+2. cap-surface: fibrous=f,grooves=g,scaly=y,smooth=s 
+3. cap-color: brown=n,buff=b,cinnamon=c,gray=g,green=r, pink=p,purple=u,red=e,white=w,yellow=y 
+4. bruises?: bruises=t,no=f 
+5. odor: almond=a,anise=l,creosote=c,fishy=y,foul=f, musty=m,none=n,pungent=p,spicy=s 
+6. gill-attachment: attached=a,descending=d,free=f,notched=n 
+7. gill-spacing: close=c,crowded=w,distant=d 
+8. gill-size: broad=b,narrow=n 
+9. gill-color: black=k,brown=n,buff=b,chocolate=h,gray=g, green=r,orange=o,pink=p,purple=u,red=e, white=w,yellow=y 
+10. stalk-shape: enlarging=e,tapering=t 
+11. stalk-root: bulbous=b,club=c,cup=u,equal=e, rhizomorphs=z,rooted=r,missing=? 
+12. stalk-surface-above-ring: fibrous=f,scaly=y,silky=k,smooth=s 
+13. stalk-surface-below-ring: fibrous=f,scaly=y,silky=k,smooth=s 
+14. stalk-color-above-ring: brown=n,buff=b,cinnamon=c,gray=g,orange=o, pink=p,red=e,white=w,yellow=y 
+15. stalk-color-below-ring: brown=n,buff=b,cinnamon=c,gray=g,orange=o, pink=p,red=e,white=w,yellow=y 
+16. veil-type: partial=p,universal=u 
+17. veil-color: brown=n,orange=o,white=w,yellow=y 
+18. ring-number: none=n,one=o,two=t 
+19. ring-type: cobwebby=c,evanescent=e,flaring=f,large=l, none=n,pendant=p,sheathing=s,zone=z 
+20. spore-print-color: black=k,brown=n,buff=b,chocolate=h,green=r, orange=o,purple=u,white=w,yellow=y 
+21. population: abundant=a,clustered=c,numerous=n, scattered=s,several=v,solitary=y 
+22. habitat: grasses=g,leaves=l,meadows=m,paths=p, urban=u,waste=w,woods=d
+
+
+
+```{r}
+
+col.names<-c("edible","cap-shape","cap-surface","cap-color","bruises","odor"
+             ,"gill-attachment","gill-spacing"
+             ,"gill-size","gill-color","stalk-shape","stalk-root","stalk-surface-above-ring"
+             ,"stalk-surface-below-ring"
+             ,"stalk-color-above-ring","stalk-color-below-ring"
+             ,"veil-type","veil-color","ring-number","ring-type"
+             ,"spore-print-color","population","habitat")
+mushroom.df<-read.csv(
+  "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data"
+                      ,header=FALSE,col.names=col.names)
+str(mushroom.df)
+summary(mushroom.df$edible)
+
+```
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep1()
+```
+
+## Step 2 - Exploring And Preparing The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the data features and any transformations.
+```
+
+
+I have to remove the veil type feature because they were all p and the C5.0 didn't like that at all. I also need to convert the edible column into factors because I think the algorithm will like it better.
+
+
+```{r}
+
+RNGversion("3.5.2");set.seed(201)
+train_sample<-sample(8124,7311)
+mushroom.df$edible<-as.factor(mushroom.df$edible)
+mushroom.df<-mushroom.df[,-17]
+mushroom_train<-mushroom.df[train_sample,]
+mushroom_test<-mushroom.df[-train_sample,]
+prop.table((table(mushroom_train$edible)))
+prop.table((table(mushroom_test$edible)))
+
+```
+
+
+
+I think that the e to p ratio in the training and testing is a good spread and since they are similar ratios is makes sense to me. I chose the 90% to 10% because they did that in the textbook and since the dataset is larger than that I decided it would be ok.
+
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep2()
+```
+
+## Step 3 - Training A Model On The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain how to train the model.
+```
+
+```{r}
+
+library(C50)
+mushroom_model<-C5.0(x=mushroom_train[-1],y=mushroom_train$edible)
+mushroom_model
+summary(mushroom_model)
+
+```
+
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep3()
+```
+
+## Step 4 - Evaluating Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the model's performance. Highlight key results.
+```
+
+
+According the the Crosstable the model didn't get any of them wrong. So it was very effective in predicting if the mushrooms were edible or not. I think that the odor did a lot of work on the first model because it was used 100% and I think that attribute is good to predict if you should eat it or not because of that.
+
+
+```{r}
+mushroom_pred<-predict(mushroom_model,mushroom_test)
+library(gmodels)
+CrossTable(mushroom_test$edible,mushroom_pred,prop.chisq=FALSE,prop.c=FALSE
+           ,prop.r=FALSE,dnn=c('actual default','predicted default'))
+```
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep4()
+```
+
+## Step 5 - Improving Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: What options can be used to improve the model? Explain and show.
+```
+
+
+Since I got them perfectly the first time I am going to use a different algorithm in attempt to make it worse instead of moving the code above. I don't think boosting will make it worse because it is supposed to make the C5.0 better. I am going to try the OneR function to make it worse because that is what happened in the text books and these cases are similar. I need to make the stringsAsFactors=True for the df because the OneR function needs it that way. I also need a new sample with the seed from the directions.
+
+
+
+```{r}
+library(RWeka)
+col.names<-c("edible","cap-shape","cap-surface","cap-color"
+             ,"bruises","odor","gill-attachment"
+             ,"gill-spacing","gill-size","gill-color","stalk-shape"
+             ,"stalk-root","stalk-surface-above-ring"
+             ,"stalk-surface-below-ring","stalk-color-above-ring"
+             ,"stalk-color-below-ring","veil-type"
+             ,"veil-color","ring-number","ring-type"
+             ,"spore-print-color","population","habitat")
+mushroom.df.2<-read.csv(
+  "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data"
+                        ,header=FALSE,col.names=col.names,stringsAsFactors = TRUE)
+mushroom.df.2<-mushroom.df.2[,-17]
+mushroom.df.2$edible<-as.factor(mushroom.df.2$edible)
+RNGversion("3.5.2");set.seed(707)
+train_sample.2<-sample(8124,7311)
+mushroom.1R.train<-mushroom.df.2[train_sample.2,]
+mushroom.1R.test<-mushroom.df.2[-train_sample.2,]
+mushroom_model.2<-OneR(edible~.,data=mushroom.1R.train)
+mushroom_model.2
+mushroom_pred.2<-predict(mushroom_model.2,mushroom.1R.test)
+
+table(actual=mushroom.1R.test$edible,predicted=mushroom_pred.2)
+```
+
+
+From the results of the OneR prediction I got 791/802 correct. Which is good. It is about 98% but I still probably wouldn't eat those mushrooms because I don't like them and that's still a gamble and I am not one to roll the dice when my life is on the line. I am now going to do the cost matrix over boosting because it sounds more fun than adding one parameter to the function with boosting because I have to make the matrix.
+
+
+If the first model ended up being worst adding a cost matrix would really help because it puts weights on the decisions and is more careful in a sense. So if the decision was really important and the cost of having a false negative was high it would be a really good option.
+
+
+```{r}
+
+##Pulled from earlier
+RNGversion("3.5.2");set.seed(707)
+train_sample.3<-sample(8124,7311)
+mushroom_train.3<-mushroom.df[train_sample.3,]
+mushroom_test.3<-mushroom.df[-train_sample.3,]
+prop.table((table(mushroom_train.3$edible)))
+prop.table((table(mushroom_test.3$edible)))
+
+matrix_dimensions<-list(c("e","p"),c("e","p"))
+names(matrix_dimensions)<-c("predicted","actual")
+error_cost<-matrix(c(0,1,4,0),nrow=2,dimnames=matrix_dimensions)
+error_cost
+mushroom_model.3<-C5.0(x=mushroom_train.3[-1],y=mushroom_train.3$edible,costs=error_cost)
+mushroom_model.3
+summary(mushroom_model.3)
+
+```
+
+The spread of edible is pretty good with this seed so I am going to stick with it. I think it is interesting that it uses 100% of odor. I guess it kind of makes sense. If something smells bad, don't eat it. I am now gonna see the results from that adding the cost matrix.
+
+
+```{r}
+mushroom_pred.3<-predict(mushroom_model.3,mushroom_test.3)
+library(gmodels)
+CrossTable(mushroom_test.3$edible,mushroom_pred.3,prop.chisq=FALSE,prop.c=FALSE,
+           prop.r=FALSE,dnn=c('actual default','predicted default'))
+```
+
+
+Again hitting us with that 100% accuracy. It makes sense adding the cost matrix wouldn't make it worse. But I think adding the cost matrix when someone is putting their life on the line is really good because it will make safer bets. I would feel more comfortable with that. I think that the decision are fairly easy for people to understand. For the most part you have a pretty good chance of 
+surviving if you smell what you're eating before you put it in your mouth. I feel pretty confident that other people will be able to understand that. 
+
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep5()
+```
+
+## Autograding
+
+```{r}
+.AutograderMyTotalScore()
+```

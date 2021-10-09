@@ -1,0 +1,151 @@
+---
+title: "CPTR330 -- S21"
+author: Hayden Tinker
+date: 4/5/2021
+course: CPTR330
+output: 
+  pdf_document:
+    number_section: false
+---
+
+# KNN Algorithm 
+
+
+Homework Notes: Describe the algorithm and give a two of the strengths and two of the weaknesses. 
+The KNN algorithm is an algorithm that can help to predict things using distance. It will graph the features that you give it and make predictions based on how close that point is to others. You can sort of control this by choosing the number of neighbors to base the prediction off of which is our K variable that we pass it. Benefits are that is simple and effective and it also makes no assumptions about the data. Weaknesses include: Slow classification phase, Nominal featuers and missing data require additional processing, and it requires selection of an appropriate K.
+
+
+## Step 1 - Collect Data
+
+```{r}
+#getting data and setting col names
+iris.df<-read.csv("http://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",stringsAsFactors = FALSE)
+colnames(iris.df)<-c("sepal-length","sepal-width","petal-length","petal-width","class")
+#finding out information 
+table(iris.df$class)
+round(prop.table(table(iris.df$class))*100,digits = 1)
+summary(iris.df[,-5])
+```
+
+
+## Step 2 - Exploring And Preparing The Data
+
+`
+Homework Notes: Explain the data features and any transformations.
+The features we have in this data set are the lengths and widths of the sepals and petals.
+
+
+```{r}
+#normalize data
+normalize<-function(x) { return((x-min(x))/(max(x)-min(x)))}
+iris.n<-as.data.frame(lapply(iris.df[,-5],normalize))
+iris.n$class<-iris.df$class
+summary(iris.n[,-5])
+```
+
+## Step 3 - Training A Model On The Data
+
+
+Homework Notes: Explain how to train the model. 
+To train this model I divided the variables in to a 60% training to a 40% testing because the data set is a little bit smaller so I wanted to have more. Another option would be 70 30. I then threw the training and testing into the algorithm along with the labels.
+
+
+```{r}
+iris.train<-iris.n[1:89,]
+iris.test<-iris.n[90:149,]
+iris.train.labels<-iris.n[1:89,5]
+iris.test.labels<-iris.n[90:149,5]
+
+
+library(class)
+iris.test.pred <- knn(train = iris.train[,-5], 
+                      test = iris.test[,-5], 
+                      cl = iris.train.labels, 
+                      k = 6)
+```
+## Step 4 - Evaluating Model Performance
+
+
+Homework Notes: Explain the model's performance. Highlight key results.
+I mainly followed the book's example for the evaluation performance. I think the model did ok. I think that maybe KNN isn't the best algorithm for this data set. I think that decision trees would fit a bit better.
+
+
+```{r}
+library(gmodels)
+table(iris.test.labels, iris.test.pred)
+CrossTable(x = iris.test.labels, 
+           y = iris.test.pred, 
+           prop.chisq = FALSE)
+```
+
+## Step 5 - Improving Model Performance
+
+
+Homework Notes: What options can be used to improve the model? Explain and show.
+I remember working on this data set back in data analysis but with decision trees. I am going to try and remove two of the features to see if that will help improve the model along with a z score standardization. I want to try both because people weren't really finding any improvement with just the z score. The features I am going to remove are the widths because it didn't seem to vary that much compared to the lengths.
+
+
+```{r}
+# z-scale standardization
+iris.z <- as.data.frame(scale(iris.df[,-c(2,4,5)]))
+
+# confirm that the transformation was applied correctly
+summary(iris.z)
+
+# create training and test datasets
+iris.z.train <- iris.z[1:89, ]
+iris.z.test <- iris.z[90:149, ]
+
+# re-classify test cases
+iris.z.pred <- knn(train = iris.z.train, 
+                      test = iris.z.test,
+                      cl = iris.train.labels, 
+                      k = 6)
+
+# Create the cross tabulation of predicted vs. actual
+CrossTable(x = iris.test.labels, 
+           y = iris.z.pred,
+           prop.chisq = FALSE)
+```
+
+
+
+I guess we got the same results as the first so I am going to try and change the k values to see if that will do anything.
+
+
+```{r}
+# try several different values of k
+iris.2.train <- iris.n[1:89,-5 ]
+iris.2.test <- iris.n[90:149, -5]
+
+
+iris.2.test.pred <- knn(train = iris.2.train, test = iris.2.test, cl = iris.train.labels, k = 1)
+table(iris.test.labels, iris.2.test.pred)
+
+
+iris.2.test.pred <- knn(train = iris.2.train, test = iris.2.test, cl = iris.train.labels, k = 2)
+table(iris.test.labels, iris.2.test.pred)
+
+iris.2.test.pred <- knn(train = iris.2.train, test = iris.2.test, cl = iris.train.labels, k = 3)
+table(iris.test.labels, iris.2.test.pred)
+
+iris.2.test.pred <- knn(train = iris.2.train, test = iris.2.test, cl = iris.train.labels, k = 4)
+table(iris.test.labels, iris.2.test.pred)
+
+iris.2.test.pred <- knn(train = iris.2.train, test = iris.2.test, cl = iris.train.labels, k = 5)
+table(iris.test.labels, iris.2.test.pred)
+
+iris.2.test.pred <- knn(train = iris.2.train, test = iris.2.test, cl = iris.train.labels, k = 6)
+table(iris.test.labels, iris.2.test.pred)
+
+iris.2.test.pred <- knn(train = iris.2.train, test = iris.2.test, cl = iris.train.labels, k = 7)
+table(iris.test.labels, iris.2.test.pred)
+
+iris.2.test.pred <- knn(train = iris.2.train, test = iris.2.test, cl = iris.train.labels, k = 8)
+table(iris.test.labels, iris.2.test.pred)
+
+iris.2.test.pred <- knn(train = iris.2.train, test = iris.2.test, cl = iris.train.labels, k = 9)
+table(iris.test.labels, iris.2.test.pred)
+```
+
+I guess the different K values and the z score and the removal of those features didn't really improve the model at all.

@@ -1,0 +1,179 @@
+---
+title: "CPTR330 --21?"
+author: Hayden tinker
+date: 4-27-21
+course: CPTR330
+output: 
+  pdf_document:
+    number_section: false
+---
+
+```{r setup,echo=FALSE,message=FALSE}
+library("here")
+library("stringr")
+#source(here("homework","autograding", paste(tail(str_split(getwd(), "/")[[1]], 1), "_tests.R", sep="")))
+#.AutograderInit()
+```
+
+# Linear Regression Algorithm
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Describe the algorithm and give a two of the strengths and two of the weaknesses.
+```
+The Linear Regression Algorithm is one that uses that is based off of the formula y= mx+b and it uses that to make predictions on the slope. With multiple lineaer regression in the way the book put it, it is y=a + B1X1 + B2X2+...+ BiXi + epsilon.
+
+Weaknesses:
+1.Makes Strong assumptions about the data
+2. The model's form must be specified by the user in advance
+Strengths:
+1. By far the most common approach for modeling numeric data
+2. Can be adapted to model almost any modeling task.
+
+
+## Step 1 - Collect Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Give an overview of the data and its source.
+```
+Once again we are pulling more data from the UCI ML library. This dataset's features are taken from Mashable articles. The Goal is to predict the number of shares in social networks (popularity).
+Found the code to get the data from this website
+https://www.analyticssteps.com/blogs/data-scraping-r-programming-part-1
+Then I unzipped and moved it to the 04_regression folder and read it from there
+
+```{r}
+
+shares.df<-read.csv("OnlineNewsPopularity.csv",header=TRUE,stringsAsFactors = TRUE)
+shares.df<-shares.df[,-c(1,2)]
+```
+
+I also saw that we were supposed to create a wordcloud but I am unable to find anything to do it on since there are only features that describe things like the rate of unique words instead of the words themselves like we saw earlier in the textbook where it helped us create a wordcloud. So I am not going to do it instead I am going to add a 3rd way to improve the model.
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep1()
+```
+
+## Step 2 - Exploring And Preparing The Data
+I took out the URl and the 2nd col because those are non predicitve so I just decided to get rid of them right off the bat. I then looked at the str, summary, and hist functions on the data set and I noticed that the shares has a very wide range of values which makes sense because the internet can be like that. After that I looked at the cor and pairs of some of the values that I was interested in seeing the relationship of. I decided to do the panels function because I liked the oval and I wanted to see what the results would be like. I thought it was interesting to see the correlation of the bus and entertainment articles. But I the stretched ovals says their correlation is pretty high and that means there is a stronger relationship.
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the data features and any transformations.
+```
+
+```{r}
+str(shares.df)
+summary(shares.df$shares)
+hist(shares.df$shares)
+
+```
+
+```{r}
+
+cor(shares.df[,c("shares","num_imgs","data_channel_is_bus","data_channel_is_entertainment")])
+pairs(shares.df[,c("shares","num_imgs","data_channel_is_bus","data_channel_is_entertainment")])
+library(psych)
+pairs.panels(shares.df[,c("shares","num_imgs","data_channel_is_bus","data_channel_is_entertainment")])
+```
+
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep2()
+```
+
+## Step 3 - Training A Model On The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain how to train the model.
+```
+
+I don't believe a training set is needed for this because the book didn't use one. In addition to that I can analyze the summary of the model to determine how well this model fits the dataset so with those thoughts in mind I didn't divide the data set up.
+
+```{r}
+shares.model<-lm(formula=shares~.,data=shares.df)
+```
+
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep3()
+```
+
+## Step 4 - Evaluating Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the model's performance. Highlight key results.
+```
+
+So just being honest these results are super trash. I followed the text book but these results are discouraging :( . I know these results are trash by the Residuals' max error which is huge.Then if you look down in the summary you will see the R squared value which says it describes only 2% of the dataset which is super super bad. Wow wow wow. Checking out the cor of the pred col and shares col it is just straight bad. I did find it interesting though "prediction from a rank-deficient fit may be misleading". A quick google search led me to find this https://discuss.analyticsvidhya.com/t/what-does-the-warning-message-prediction-from-a-rank-deficient-fit-mean-in-logistic-regression/4282/2
+Apparently we are using too many predictors. Which makes sense. I think that 60 variables is alot. In addition to that it didn't even us the sunday and weekend features. I do notice that I don't have a lot of small p values so maybe these features aren't that good of predicting how many shares we will get. I will improve on that in the next section.
+
+```{r}
+summary(shares.model)
+shares.df$pred<-predict(shares.model,shares.df)
+cor(shares.df$pred,shares.df$shares)
+plot(shares.df$pred,shares.df$shares)
+```
+
+
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep4()
+```
+
+## Step 5 - Improving Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: What options can be used to improve the model? Explain and show.
+```
+I am first going to try and use some dummy coding for the days of the week. I will make is_weekend the binary predictor for that.Because in my first model it didn't like the sunday and the weekend feature so I decided to follow the book and change that over to a binary predictor and I expect this to help a little
+
+```{r}
+shares.df.2<-shares.df[,-c(30,31,32,33,34,35,36,60)]
+shares.model.2<-lm(formula=shares~.,data=shares.df.2)
+summary(shares.model.2)
+shares.df.2$pred<-predict(shares.model.2,shares.df.2)
+cor(shares.df.2$pred,shares.df.2$shares)
+plot(shares.df.2$pred,shares.df.2$shares)
+
+```
+
+Looking at the plot it seems the predictions just predict too much. I also think that somehow by changing it to the binary predictor made it worse. I guess it would be a little different from the example in the book because they used it for male/female and I used for weekend or not. The R squared and the max errors went up so that is how I know it got worse instead of better.
+
+
+I am going to try and add some interactions because I feel like some of the features interact. For example I think the business websites will probably get less shares during the weekend because those aren't business days and people have them off. The reason I don't add a nonlinear feature is because looking at them I don't think there is a nonlinear feature. For example in the textbook they did age^2 because the insurance expenses increases that much with age. In addition to that I am going to try and take out some of the features that didn't have a statistically significant p value.
+
+```{r}
+shares.df.3<-shares.df[,-c(17,18,19,20,21,22,30,31,32,
+                           33,34,35,36,38,39,40,41,60)]
+shares.model.3<-lm(formula=shares~.+data_channel_is_bus*is_weekend
+                   ,data=shares.df.3)
+summary(shares.model.3)
+shares.df.3$pred<-predict(shares.model.3,shares.df.3)
+cor(shares.df.3$pred,shares.df.3$shares)
+plot(shares.df.3$pred,shares.df.3$shares)
+```
+
+For the graph I am seeing the same things as before. The predictions are just wrong. The cor even went down by 1% so that means the predictions are even worse and it covers 14% of the data. In addition to that the error from the residuals went up and the R^2 value went down signaling that too. I think that adding the interaction and removing some of the features could be viable in some situations but I suppose this wasn't that time.
+
+I decided to try the binary predictor again. Instead of doing it for another feature I am going to make it 0 or 1 (if it is popular or not) based on the shares. 
+
+```{r}
+shares.df.4<-shares.df[,-c(17,18,19,20,21,22,30,31,
+                           32,33,34,35,36,38,39,40,41,60)]
+shares.df.4$shares<-ifelse(shares.df.4$shares
+                           <=1400,1,0)
+shares.model.4<-lm(formula=shares~.+data_channel_is_bus*is_weekend
+                   ,data=shares.df.4)
+summary(shares.model.4)
+shares.df.4$pred<-predict(shares.model.4,shares.df.4)
+cor(shares.df.4$pred,shares.df.4$shares)
+plot(shares.df.4$pred,shares.df.4$shares)
+```
+
+The graph looks a bit better and I think using the binary predictor was smart and the cor shows that. My r^2 also went up and the error went down. Although something making the shares 0 or 1 would affect that and thats probably why it went so much.
+```{r, eval=FALSE, echo=FALSE}
+.AutogradeStep5()
+```
+
+## Autograding
+
+```{r}
+#.AutograderMyTotalScore()
+```

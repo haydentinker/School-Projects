@@ -1,0 +1,134 @@
+---
+title: "CPTR330 -- ??"
+author: Hayden Tinker
+date: 4/12/2021
+course: CPTR330
+output: 
+  pdf_document:
+    number_section: false
+---
+
+# Naive Bayes Algorithm 
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Describe the algorithm and give a two of the strengths and two of the weaknesses.
+```
+
+The Naives Bayes algorithm is an algorithm that is based of bayes theorem.
+The originial theorem allows you to find the probability of an event happening given another event
+Using this theorem is allows us to calculate posterior probability that measures the likelyhood of an event.
+This allows us to have a simple method to apply to classification problems.
+
+Strengths of Naive Bayes:
+  1. Simple,fast, and very effective
+  2. Does well with noisy and missing data
+  
+Weaknesses:
+  1. Relies on an often-faulty assumption of equally important and independent features
+  2. Not ideal for data sets with many numeric features.
+## Step 1 - Collect Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Give an overview of the data and its source.
+```
+
+
+So this data is from the UCI machine learning repository. 
+It is a data frame with information about adults. 
+It includes: age, workclass, fnlwgt, education, education-num, 
+marital-status, occupation, relationship, race, sex, capital-gain, 
+capital-loss, hours-per-week, native-country, and whether they make over 50k or not.
+
+
+```{r}
+col.names<-c("age","workclass","fnlwgt","education","education-num"
+             ,"marital-status","occupation","relationship",
+             "race","sex","capital-gain","capital-loss","hours-per-week"
+             ,"native-country","fiftyk")
+adult.df<-read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",
+                   header=FALSE,col.names = col.names, stringsAsFactors = TRUE)
+
+```
+## Step 2 - Exploring And Preparing The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the data features and any transformations.
+```
+
+I may remove capital gain + loss because there is a lot of missing data. 
+I could do that or use the laplace estimator. I will try leaving it off for now 
+and see if it will help in the improving model section. 
+It seems that the majority of adults make more than 50k. 
+The means of the ages is about 38. 
+The mean education is some college which makes sense. 
+The mean hours per week is 40 which again makes sense since most are full time.
+I am going to also take out the features that aren't used for the evaluation. 
+Going off of the UCI website it looks like the features that are left aren't continuous. 
+So I am not gonna the time to put them (the continuous features) into bins since I won't be using them.
+
+
+```{r}
+
+round(prop.table(table(adult.df$fiftyk))*100,digits = 1)
+summary(adult.df[,-15])
+#####COME BACK
+adult.n.df<-adult.df[,c(2,4,8,14,15)]
+adult.labels<-as.factor(adult.df[,15])
+str(adult.labels)
+table(adult.labels)
+```
+## Step 3 - Training A Model On The Data
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain how to train the model.
+```
+
+Since the book used a 75% training to 25% testing I am going to do it too because the data set is fairly massive. 
+Then I will split the labels off into training and testing sets too. 
+
+```{r}
+adult.train<-adult.n.df[1:24420,]
+adult.test<-adult.n.df[24421:32561,]
+adult.train.labels<-adult.df[1:24420,15]
+adult.test.labels<-adult.df[24421:32561,15]
+
+#Oh baby its time
+
+library(e1071)
+adult.model<-naiveBayes(adult.train,adult.train.labels,laplace=0)
+adult.pred<-predict(adult.model,adult.test,type="class")
+
+
+```
+## Step 4 - Evaluating Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: Explain the model's performance. Highlight key results.
+```
+
+Using the code for the CrossTable from the book I got very good results. 
+It looks as if I only misclassified one thing which is pretty amazing given the data set size. 
+I got very close to having perfect results but I am going to try and get all of it in the improving section.
+```{r}
+library(gmodels)
+CrossTable(adult.pred,adult.test.labels,prop.chisq=FALSE,prop.c=FALSE,prop.r=FALSE
+           ,dnn=c('predicted','actual'))
+```
+
+## Step 5 - Improving Model Performance
+
+```{note,eval=FALSE,echo=FALSE}
+Homework Notes: What options can be used to improve the model? Explain and show.
+```
+
+I didn't think that it was possible but my model got all of the predictions right. 
+I used the laplace estimator to get rid any of those zeros and it ended up working pretty well. 
+I am not sure what else I can do to improve the model since it is already getting them all right.
+
+```{r}
+
+adult.model<-naiveBayes(adult.train,adult.train.labels,laplace=1)
+adult.pred<-predict(adult.model,adult.test,type="class")
+CrossTable(adult.pred,adult.test.labels,prop.chisq=FALSE,prop.c=FALSE,prop.r=FALSE
+           ,dnn=c('predicted','actual'))
+```
