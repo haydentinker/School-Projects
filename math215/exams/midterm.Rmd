@@ -1,0 +1,320 @@
+---
+title: "MATH 215 Midterm Exam"
+author: "Hayden Tinker"
+output:
+  bookdown::pdf_book
+---
+
+For this take-home midterm exam, you are allowed to use any of the resources found on the course website, your books, and your notes.  You are not allowed to consult general internet resources or any other individuals (including your fellow students).  Complete this R notebook file by embedding R code as needed and answering questions in the text chunks.  Feel free to add extra chunks as needed.  You are also welcome to "play with" the data in an interactive session, but the final commands you use to get your answers need to be in the R notebook you turn in.
+
+# Part I: Swiss Socioeconomic Indicators in 1888
+
+1. Examine the help file for the built-in R data set `swiss`.  Identify each variable and indicate what it measure.
+
+```{solution,eval=FALSE}
+[,1]	Fertility	Ig, ‘common standardized fertility measure’
+[,2]	Agriculture	% of males involved in agriculture as occupation
+[,3]	Examination	% draftees receiving highest mark on army examination
+[,4]	Education	% education beyond primary school for draftees.
+[,5]	Catholic	% ‘catholic’ (as opposed to ‘protestant’).
+[,6]	Infant.Mortality	live births who live less than 1 year.
+```
+
+
+2. Find the mean and median of the rate at which males in each province were involved in agriculture as an occupation.
+
+```{r}
+male.mean.agr<-mean(swiss$Agriculture)
+male.median.agr<-median(swiss$Agriculture)
+```
+
+
+3.  Construct a histogram for the agriculture rate. Describe the center and shape of this histogram and anything else that you notice based on the histogram.
+
+```{r}
+hist(swiss$Agriculture)
+```
+
+```{solution,eval=FALSE}
+I think that the center is around the median and the mean. That would mean the histogram is skewed to the right because 50 to 54.1 is not in the exact middle of the graph.
+```
+
+
+4. Give the name of the province or provinces which had the median agriculture rate.
+
+```{r}
+province.row<-swiss[swiss$Agriculture==54.1,]
+province.name<-row.names(province.row)
+province.name
+
+```
+
+
+5. Create a copy of the data frame called `my.swiss` and add a column named "Majority.Catholic" which contains a 1 if the province was 50% or more Catholic and a 0 otherwise.
+
+```{r}
+my.swiss<-swiss
+majority_cath<-my.swiss$Catholic>50
+majority_cath<-majority_cath*1
+my.swiss$Majority.Catholic<-majority_cath
+```
+
+
+6. Construct a box plot comparing the education level between provinces that were a majority Catholic and those that were not.  What do you observe based on this box plot?
+
+```{r}
+boxplot(Education~Majority.Catholic, data=my.swiss)
+```
+
+```{solution,eval=FALSE}
+The 0 seems to have a bigger mean, interquatile range, min, and max. Along with more outliers. 
+```
+
+
+7. Conduct a hypothesis test to determine whether it is reasonable to conclude that the variances in the fertility rates are the same in majority Catholic and non-majority Catholic provinces.  Use the 0.05 significance level.
+
+```{solution,eval=FALSE}
+Null: The var in the fertility rates are the same in majority Catholic and non-majority Catholic provinces.
+Alternative: The var in the fertility rates are different in majority Catholic and non-majority Catholic provinces.
+```
+
+```{r}
+var.test(my.swiss$Fertility[my.swiss$Majority.Catholic==1],my.swiss$Fertility[my.swiss$Majority.Catholic==0])
+```
+
+```{solution,eval=FALSE}
+We fail to reject the null because 0.6538 p value is not very significant. So that means the variances are relatively the same.
+```
+
+
+8. Conduct a hypothesis test of the claim that the fertility rate is different in majority Catholic provinces than it is in non-majority Catholic provinces.  Use the 0.05 significance level, and choose the correct test based on your conclusion above.
+
+```{solution,eval=FALSE}
+Null: The fertility rates are the same in majority and non majority catholic provinces
+Alternative: The fertility rates are different
+```
+
+```{r}
+#Since it is reasonable to assume the vars are equal using the var.equal=TRUE
+#fertility.t.test<- t.test(my.swiss$Fertility[my.swiss$Majority.Catholic==1],my.swiss$Fertility[my.swiss$Majority.Catholic==0])
+#Either way though we would be able to reject the null
+fertility.t.test<- t.test(my.swiss$Fertility[my.swiss$Majority.Catholic==1],my.swiss$Fertility[my.swiss$Majority.Catholic==0],var.equal = TRUE)
+fertility.t.test
+```
+
+```{solution,eval=FALSE}
+We reject the null because the p value is below our 0.5 significance level. So the fertility rate is different.
+```
+
+
+# US States Facts and Figures
+
+The built-in data set `state.x77` contains statisticss on all 50 US states as published by the US Census Bureau in 1977.  Use it to complete the following tasks.
+
+
+1. Examine the help file for `state.x77` to identify each variable and indicate with it measures.
+   
+```{solution,eval=FALSE}
+Population:
+population estimate as of July 1, 1975
+
+Income:
+per capita income (1974)
+
+Illiteracy:
+illiteracy (1970, percent of population)
+
+Life Exp:
+life expectancy in years (1969–71)
+
+Murder:
+murder and non-negligent manslaughter rate per 100,000 population (1976)
+
+HS Grad:
+percent high-school graduates (1970)
+
+Frost:
+mean number of days with minimum temperature below freezing (1931–1960) in capital or large city
+
+Area:
+land area in square miles
+```
+
+
+2. This data is stored as a matrix.  Convert it to a data frame named `my.states`.
+
+```{r}
+my.states<-state.x77
+```
+
+
+3. Find the two distinct variables with the strongest linear correlation and create a scatter plot with a regression line displaying that relationship.
+
+```{r}
+illiteracy<-my.states[,"Illiteracy"]
+murder<- my.states[,"Murder"]
+
+library(corrgram)
+corrgram(my.states,lower.panel = panel.conf,upper.panel = panel.pts)
+plot(illiteracy,murder) +
+  abline(lm(murder~illiteracy),col="green")
+ 
+```
+
+
+4. Find the 33.3rd. and 66.7th quantile for the high school graduation rates in this data set.
+
+```{r}
+hs.grad.quant<-quantile(my.states[,"HS Grad"],c(.333,.667))
+
+```
+
+
+5. Add a column named `Education` that is 0 if the high school graduate rate is in the 33.3rd percentile or below, 1 if it is between the 33.3rd and 66.7th percentile, and 2 if it is above the 66.7th percentile. *Hint:* Look at the `ifelse` function.
+
+```{r}
+my.states<-state.x77
+my.states <- cbind(my.states, 1)
+colnames(my.states)<-c("Population","Income","Illiteracy","Life Exp","Murder","HS Grad","Frost","Area","Education")
+for(i in 1:50){
+  if(my.states[i,"HS Grad"]<=hs.grad.quant[1]){
+    my.states[i,"Education"]=0
+    
+  }else if(my.states[i,"HS Grad"]>hs.grad.quant[1]&&my.states[i,"HS Grad"]<hs.grad.quant[2]){
+    my.states[i,"Education"]=1
+  }else if(my.states[i,"HS Grad"]>=hs.grad.quant[2]){
+    my.states[i,"Education"]=2
+  }
+}
+#my.states
+```
+
+
+6. Use Analysis of Variance to test the claim that the states in these three education levels have different average income levels.  Display the resulting ANOVA table and interpret the p-value you find.
+
+```{r}
+aov.school.results<-aov(my.states[,"Income"]~my.states[,"Education"])
+summary(aov.school.results)
+```
+
+```{solution,eval=FALSE}
+This is a very significant p value so we will reject the null. Which means there is a difference between the education levels.
+```
+
+
+7. Test whether it is reasonable to assume that the residuals in your ANOVA test are normally distributed.  You should both conduct a Shapiro test and examine a qqPlot.  If this assumption is not reasonable, conduct an alternative test and discuss those results.  If it is reasonable, state why.
+
+```{r}
+shapiro.test(aov.school.results$residuals)
+qqPlot(aov.school.results$residuals)
+```
+
+```{solution,eval=FALSE}
+I think that it is very reasonable with the qqplot and shapiro test because in the qqplot we have the dashed lines which are our error lines and if it wasn't normally distributed then a lot of the circles will be outside those dashed lines. Instead we are seeing more circles along the line it the middle which is the perfect normal distribution line .
+```
+
+
+# Most Popular Baby Names in New York City
+
+the CSV file [https://data.cityofnewyork.us/api/views/25th-nujf/rows.csv?accessType=DOWNLOAD]() contains data on the post popular baby names in New York City.  The columns in this data set are:
+
+  * Year.Of.Birth -- year of birth (2011, 2012, 2013, 2014, 2015, or 2016)
+  * Gender -- gender of the baby (MALE or FEMALE)
+  * Ethnicity -- ethnicity of the mother (various)
+  * Child.s.First.Name -- the baby name (various)
+  * Count -- count of the number of babies with that name (various)
+  * Rank -- rank of the name in that year for that sex and ethnic group (various)
+
+
+1. Download this data into a data frame named `baby.name` and clean the `Child.s.First.Name` variable by using the `tolower` function to convert names to all lower case.
+    
+```{r}
+baby.name<-read.csv("https://data.cityofnewyork.us/api/views/25th-nujf/rows.csv?accessType=DOWNLOAD")
+baby.name$Child.s.First.Name<- tolower(baby.name$Child.s.First.Name)
+```
+
+
+2. What proportion of female babies born in 2013 were named Isabel, Isabella, or Isabelle?
+
+```{r}
+library(prob)
+babies.born.2013<-baby.name[baby.name$Year.of.Birth==2013,]
+babies.born.2013.female<-babies.born.2013[babies.born.2013$Gender=="FEMALE",]
+babies.born.name1<-babies.born.2013.female[babies.born.2013.female$Child.s.First.Name=="isabel",]
+babies.born.name2<-babies.born.2013.female[babies.born.2013.female$Child.s.First.Name=="isabella",]
+babies.born.name3<-babies.born.2013.female[babies.born.2013.female$Child.s.First.Name=="isabelle",]
+prop.female.babies<-(length(babies.born.name1$Child.s.First.Name)+length(babies.born.name2$Child.s.First.Name)+length(babies.born.name3$Child.s.First.Name))
+prop.female.babies/length(babies.born.2013.female$Child.s.First.Name)
+```
+
+
+3. Find a 95% confidence interval for the proportion of female babies born in 2013 named Isabel, Isabella, or Isabelle using a binomial distribution.  *Hint:* Use the function `binom.test`.
+
+```{r}
+binom.test(29,2941,p=0.006120367, conf.level =.95)
+```
+
+```{solution,eval=FALSE}
+ 0.006613458 to 0.014130974
+```
+
+
+4. What is the one name that was the most popular for males in this data set regardless of the year or their mothers' ethnicity?  *Hint:* You may find the `xtabs` function and the relationship "Count ~ Child.s.First.Name" helpful.
+
+```{r}
+babies.born.male<-baby.name[baby.name$Gender=="MALE",]
+xtabs.results<-xtabs(Count~Child.s.First.Name,data=babies.born.male)
+sort(xtabs.results)
+name.max<-max(xtabs.results)
+#Ethan 9262
+```
+
+
+5. Create a cross-tabulation of the count comparing birth year and mothers' ethnicity for all babies with that name.  *Note:* you will find that ethnic groups have been labeled differently in 2012.  You should correct that.
+
+```{r}
+
+for(i in 1:length(baby.name$Year.of.Birth)){
+  if(baby.name[i,"Ethnicity"]=="ASIAN AND PACI"){
+    baby.name[i,"Ethnicity"]="ASIAN AND PACIFIC ISLANDER"
+  }else if(baby.name[i,"Ethnicity"]=="WHITE NON HISP"){
+    baby.name[i,"Ethnicity"]="WHITE NON HISPANIC"
+  }else if(baby.name[i,"Ethnicity"]=="BLACK NON HISP"){
+    baby.name[i,"Ethnicity"]="BLACK NON HISPANIC"
+  }
+}
+child.named.ethan<-baby.name[baby.name$Child.s.First.Name=="ethan",]
+cross.tab.ethan<-xtabs(Count~Ethnicity+Year.of.Birth,data=child.named.ethan)
+cross.tab.ethan
+```
+
+
+6. Test the hypothesis that the birth year and ethnicity of the mother are independent when measuring this one name's popularity.  That is, that the rows and columns of the table you created above are independent.  State your conclusion.
+
+```{r}
+#prop.table(cross.tab.ethan)
+ethan.chisq<-chisq.test(cross.tab.ethan)
+ethan.chisq
+```
+
+```{solution,eval=FALSE}
+This is a very very significant value and I reject the null hypothesis that the ethnicity and birth year are independent of each other.
+```
+
+
+7. Use the residuals of your test to identify what parts of the table differ the most from what we would expect if the two variables (birth year and mother's ethnicity) were independent.
+
+```{r}
+ethan.chisq$residuals
+```
+
+```{solution,eval=FALSE}
+Since the residuals are Observed - Expected the values that are bigger either positive or negative will be the most different
+Some of the big boys are 
+Hispanic + Asian and Pacific Islander 2011
+Asian Pacific Islander + Hispanic 2013
+White non Hispanic 2014
+Hispanic 2015
+
+
+```

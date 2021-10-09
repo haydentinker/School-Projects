@@ -1,0 +1,448 @@
+---
+title: "MATH 215 Final Exam"
+author: "Your Name"
+output:
+  bookdown::pdf_book
+---
+
+For this take-home final exam, you are allowed to use any of the resources found on the course website, your books, and your notes.  You are not allowed to consult general internet resources or any other individuals (including your fellow students).  Complete this R notebook file by entering R code in the "r" chunks and answering questions in the "text"" chunks.  Feel free to add extra chunks as needed.  You are also welcome to play with the data in an interactive session or in the Viewer, but the final commands you use to get your answers need to be in the R notebook you turn in.
+
+
+# Part I -- Categorical Data
+
+1. Examine the data set *adult.data* found under the *Data Folder* link on the web page [](http://archive.ics.uci.edu/ml/datasets/Adult) and load it into R. Note that the first row is regular data, not column headings.  So you will need to turn off headings and add your own column names to the data frame.
+
+```{r}
+adult.col.names<-c("Age","Work Class","fnlwgt","education","educationnum","martialstatus","occupation","relationship","race","sex","capitalgain","capitalloss","hoursperweek","nativecountry","k")
+adult.data<-read.csv("http://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",header=FALSE,stringsAsFactors = TRUE)
+colnames(adult.data)<-adult.col.names
+```
+
+
+2. Use an assertion to verify that the individuals represented in this data set are in fact all adults (age 18 or over).  Remove any rows which violate this constraint and re-test your assertion.
+
+```{r}
+library(assertr)
+#adult.data<-assert(adult.data,within_bounds(18,110),Age)
+adult.data<-adult.data[adult.data$Age>=18,]
+```
+
+```{r}
+adult.data<-assert(adult.data,within_bounds(18,110),Age)
+```
+
+
+3. Use appropriate visualization techniques and descriptive statistics to explore the relationship between the variables *age* and *marital status*.  Describe at least one thing you discover from this visualization.
+
+```{r}
+adult.data$Age<-as.numeric(adult.data$Age)
+adult.data$fnlwgt<-as.numeric(adult.data$fnlwgt)
+plot(Age~martialstatus,data=adult.data)
+```
+
+```{solution,eval=FALSE}
+The never married categories has a lot of outliers. At this point are they really outliers? XD
+```
+
+
+4. Construct a new data frame that contains the average age for the individuals in this data set grouped by their marital status.  Does this data frame suggest the mean ages are different?
+
+```{r}
+ad.data.2<-as.data.frame(1)
+ad.data.2<-ad.data.2[-1,]
+ad.data.2$NeverMarried<-mean(adult.data$Age[adult.data$martialstatus==" Never-married"])
+ad.data.2$MarriedSpouseAbsent<-mean(adult.data$Age[adult.data$martialstatus==" Married-spouse-absent"])
+ad.data.2$Divorced<-mean(adult.data$Age[adult.data$martialstatus==" Divorced"])
+ad.data.2$Separated<-mean(adult.data$Age[adult.data$martialstatus==" Separated"])
+ad.data.2$MarriedAFSpouse<-mean(adult.data$Age[adult.data$martialstatus==" Married-AF-spouse"])
+ad.data.2$Widowed<-mean(adult.data$Age[adult.data$martialstatus==" Widowed"])
+library(dplyr)
+#This wont work for me :(
+#ad.data.2<-select(adult.data,martialstatus)%>%
+  #group_by(martialstatus)%>%
+  #summarize(usage=mean(Age))
+```
+
+```{solution,eval=FALSE}
+Yes it does suggest the mean ages are different.
+```
+
+
+5. Conduct an appropriate hypothesis test to determine if there is a difference in the average ages for age of individuals from the various marital status levels.  State your hypothises and conclusion.
+
+```{solution,eval=FALSE}
+Null: There is no difference
+Alternative: There is a difference
+```
+
+```{r}
+mean(adult.data$Age)
+t.test(adult.data$Age[adult.data$martialstatus==" Never-married"],mu=39)
+t.test(adult.data$Age[adult.data$martialstatus==" Divorced"],mu=39)
+t.test(adult.data$Age[adult.data$martialstatus==" Married-civ-spouse"],mu=39)
+```
+
+```{solution,eval=FALSE}
+Since I got a significant p-value there is a difference between the average age and those who aren't married. So I reject the null.
+I reject the null for Divorced too.
+I reject the null for the Married-civ-spouse too.
+```
+
+
+6. Use appropriate visualization techniques and descriptive statistics to explore the relationship between the variables "education (not "education-num") and "sex".  Describe at least one thing you learn from this visualization.
+
+```{r}
+
+adult.data$sex<-as.numeric(adult.data$sex)
+adult.test<-adult.data
+#adult.test$education<-as.numeric(adult.data$education)
+plot(education~sex,data=adult.test)
+```
+
+```{solution,eval=FALSE}
+The lines are bit lower for the females near the bottom which are some college and higher which could mean there are less females.
+```
+
+
+7.  Conduct an appropriate hypothesis test to determine if the "sex" and "education" variables are related to each other.  Examine the residuals and comment on what they tell you about the relationship.
+
+```{solution,eval=FALSE}
+Null: they aren't related
+Alternative: They are related
+```
+
+```{r}
+chisq.test <- chisq.test(table(adult.data$sex, adult.data$education))
+chisq.test
+```
+
+```{solution,eval=FALSE}
+Since there is a significant p value we reject the null.
+```
+
+
+8. The purpose of this data set is to experiment with classification algorithms. In particular, to attempt to predict if a person makes more than $50,000 or not based on the variables in the data set.  Construct at least three different classification models using at least two of the machine learning algorithms seen in class (kNN, logistic regression, decision trees, and random forests).  For each model complete the following:
+
+    * Describe the predictors and parameters you used to use and give a justification for your choice.
+    * Run your model on the *adult.test* data set found in the same "Data Folder" and measure its accuracy.
+    
+Hints: 
+    * You may need to convert non-numeric variables to factors in both the training and testing data
+    * Pay attention to the formatting of the last column in the training and testing data set. You may need to do some data wrangling.   
+    * If you use a random forest, you will need to relevel your testing set using the levels from your training set.  See [this article](https://stats.stackexchange.com/questions/235764/new-factors-levels-not-present-in-training-data) for instructions
+
+```{r}
+# Use this block to load the test data and do any needed cleaning of the test/training data
+set.seed(2048)
+rows.train<-sample(1:nrow(adult.data),2/3*nrow(adult.data))
+adult.data[,"k"]<-as.numeric(adult.data[,"k"])
+adult.data$k<-adult.data$k-1
+adult.data<-adult.data[complete.cases(adult.data),]
+df.train<-adult.data[rows.train,]
+df.test<-adult.data[-rows.train,]
+```
+
+  a. First Model
+  
+```{solution,eval=FALSE}
+I am gonna use the logistic regression because that sounds like fun and its supposed to be used for continuous variables. I am using education and sex to predict whether a person makes more than 50k a year.
+```
+
+```{r}
+df.train.2<-df.train[,c("education","sex","k")]
+df.test.2<-df.test[,c("education","sex","k")]
+library(boot)
+reg.model.1<- glm(k~education+sex,data=df.train.2,family="binomial")
+summary(reg.model.1)
+
+pred.4<-round(predict(reg.model.1,type="response",newdata=df.test.2))
+
+pred.matched.4<-pred.4==df.test.2$k
+sum(pred.matched.4)/length(pred.matched.4)
+
+```
+
+  b. Second Model
+  
+```{solution,eval=FALSE}
+I am going to do the logistic regression again but with sex and martial status because I am curious about that.
+```
+
+```{r}
+df.train.3<-df.train[,c("sex","martialstatus","k")]
+df.test.3<-df.test[,c("sex","martialstatus","k")]
+reg.model.2<- glm(k~martialstatus+sex,data=df.train.3,family="binomial")
+summary(reg.model.2)
+
+pred.5<-round(predict(reg.model.2,type="response",newdata=df.test.3))
+
+pred.matched.5<-pred.5==df.test.3$k
+sum(pred.matched.5)/length(pred.matched.5)
+
+```
+
+  b. Third Model
+  
+```{solution,eval=FALSE}
+I decided to do the KNN model because I wanted to see the results of it and see how well it works.
+```
+
+```{r}
+library(class)
+df.train.4<-df.train[,c(1,5,15)]
+df.test.4<-df.test[,c(1,5,15)]
+colnames(df.test.4)<-c("educationnum","age","fiftyk")
+colnames(df.train.4)<-c("educationnum","age","fiftyk")
+df.train.4<-df.train.4[complete.cases(df.train.4),]
+df.test.4<-df.test.4[complete.cases(df.test.4),]
+pred.1<- knn(
+  df.train.4[,-3],
+  df.test.4[,-3],
+  as.factor(df.train.4[,3]),
+  k=2
+  )
+
+pred.matched<- pred.1==df.test.4$fiftyk
+sum(pred.matched)/length(pred.matched)
+```
+
+
+# Part II -- Numerical Data
+
+1. Examine the data set "auto-mpg.data" found under the "Data Folder" link on the web page [](http://archive.ics.uci.edu/ml/datasets/Auto+MPG).  Use the `read.fwf` function with a widths vector of `c(5,4,9,11,11,10,5,30)` to load it into R. Give the columns appropriate names and make sure columns with numerical data are of a numerical type.
+
+```{r}
+auto.mpg.data<-read.fwf("http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data",widths=c(5,4,9,11,11,10,5,30),col.names=c("mpg","cylinders","displacement","horsepower","weight","acceleration","modelyear","origin","carname"),header=FALSE)
+auto.mpg.data$cylinders<-as.numeric(auto.mpg.data$cylinders)
+auto.mpg.data$displacement<-as.numeric(auto.mpg.data$displacement)
+auto.mpg.data$horsepower<-as.numeric(auto.mpg.data$horsepower)
+auto.mpg.data$weight<-as.numeric(auto.mpg.data$weight)
+auto.mpg.data$acceleration<-as.numeric(auto.mpg.data$acceleration)
+auto.mpg.data$modelyear<-as.numeric(auto.mpg.data$modelyear)
+auto.mpg.data$origin<-as.numeric(auto.mpg.data$origin)
+```
+
+
+2. Programmatically identify all missing values in the data set (don't just hunt for them visually) and deal with them in an appropriate fashion.  Justify your method for dealing with these missing values.
+
+```{r}
+auto.mpg.data<-auto.mpg.data[complete.cases(auto.mpg.data),]
+
+```
+
+```{solution,eval=FALSE}
+I know that generally you want to stray away from getting rid of the data that is missing and you should use the mean route or linear regression model. But I felt like since we are focusing on cars of different makes it would be bad to use those routes to deal with the missing values. It only removed 6 of the rows so I feel comfortable moving forward with this since it is only about 1% of the total population.
+```
+
+
+3. Use regular expressions to remove the quotes from the car name and add a column containing the car make (i.e. ford, honda, etc.).  Then construct a side-by-side box plot of miles per gallon grouped by these makes.
+
+```{r}
+auto.mpg.data$carname<-auto.mpg.data$carname %>% str_replace_all("\"","")
+```
+
+
+4. Randomly sample 75 of these vehicles and construct a histogram for the horsepower of the vehicles in your sample.  Describe the shape of your histogram.  Be sure to use `set.seed` so that your sample is consistent.
+
+```{r}
+set.seed(402)
+auto.samp.rows<-sample(nrow(auto.mpg.data),size=75)
+auto.samp<-auto.mpg.data[auto.samp.rows,]
+hist(auto.samp$horsepower)
+```
+
+```{solution,eval=FALSE}
+It looks like it was gonna be normally distributed but it is missing a big chunk of the middle. That could be the sample that I took but it looks like it is skewed to the left.
+```
+
+
+5. Construct a 95% confidence interval for the horsepower of the entire population of vehicles based on your sample of 75 taken above.  How does the mean horsepower of the entire data set compare with your confidence interval?
+
+```{r}
+quantile(auto.mpg.data$horsepower,0.05)
+quantile(auto.mpg.data$horsepower,.95)
+quantile(auto.samp$horsepower,0.05)
+quantile(auto.samp$horsepower,.95)
+```
+
+```{solution,eval=FALSE}
+The 95% conf interval that I found from the sample was actually pretty close to the conf interval of the whole data set.
+```
+
+
+6. Assuming a prior distribution that is normal with a mean uniformly distributed between 50 and 200 and a standard deviation uniformly distributed between 20 and 40, use your sample above and MCMC methods to conduct a Bayesian analysis resulting in a 95% credible interval for the horsepower of the entire population.  How does this credible interval compare with the confidence interval found above?
+
+```{r}
+library(runjags)
+testjags()
+auto.model<-"
+  model{
+    mu~dunif(50,200)
+    stdev ~dunif(20,40)
+    tau<-pow(stdev,-2)
+    for(i in 1:theLength){
+      samp[i]~dnorm(mu,tau)
+    }
+  }
+"
+
+auto.data<-list(
+sample=auto.samp$horsepower,
+theLength=75
+)
+auto.results<-autorun.jags(
+  auto.model,
+  data=auto.data,
+  n.chains=3,
+  inits=list(
+    list(.RNG.name="base::Wichmann-Hill",.RNG.seed=100),
+    list(.RNG.name="base::Wichmann-Hill",.RNG.seed=200),
+    list(.RNG.name="base::Wichmann-Hill",.RNG.seed=300)
+  ),
+  monitor=c("mu","stdev")
+)
+
+auto.matrix<- as.matrix(auto.results$mcmc)
+quantile(auto.matrix[,"mu"],c(0.025,0.975))
+```
+
+```{solution,eval=FALSE}
+My 95% cred interval was 53.77673 to 196.27617. Which is a bit wider than the conf interval
+```
+
+
+7. Use the bootstrap to construct a 99% confidence interval for the median mpg in this data set.
+
+```{r} 
+library(boot)
+set.seed(2048)
+boot.results.2<-boot(auto.mpg.data$mpg,function(data,i){median(data[i])},R=10000)
+boot.ci(boot.results.2,type=c("basic","perc","bca"))
+```
+
+
+8. Find a regression model which you believe best predicts "mpg" based on any combination of the other variables in the data set.  Examine at least three potential models, utilize cross-validation, and explore issues involving colinearity in your work for this problem.
+
+```{r}
+library(car)
+library(boot)
+
+auto.reg.1<-lm(mpg~cylinders+horsepower,data=auto.mpg.data)
+sqrt(mean(auto.reg.1$residuals^2))
+plot(auto.reg.1)
+vif(auto.reg.1)
+
+auto.reg.2<-glm(mpg~horsepower,data=auto.mpg.data)
+plot(auto.reg.2)
+model.2.cv<-cv.glm(auto.mpg.data,auto.reg.2,K=5)
+sqrt(mean(auto.reg.2$residuals^2))
+sqrt(model.2.cv$delta[2])
+
+auto.reg.3<-lm(mpg~displacement,data=auto.mpg.data)
+sqrt(mean(auto.reg.3$residuals^2))
+plot(auto.reg.3)
+```
+
+```{solution,eval=FALSE}
+
+I did the cross validation for the auto.reg.3 and got the rmse and the error went up but only by a little. I think that this error is pretty high with the things we are dealing with. It should help me get a better fit though
+I think that auto.reg.1 gave me the best results because I examined the collinearity on the auto.reg.1 and got this:
+   cylinders horsepower 
+  3.455675   3.455675 
+I also got a rmse of  4.565982
+For auto.reg.2 I got a rmse of  4.623261 
+Overall the rmse is pretty high.
+```
+
+
+### Part III -- Time Series Analysis
+
+1. Connect to the database "shampoo" on the server "172.27.8.150" using username "adminer" and password "ABC123xyz".  Download all data contained in this database into R.  Do not change any data on the database server.
+   
+```{r}
+library(RMySQL)
+out.db<-dbConnect(MySQL(),host="172.27.8.150",user="adminer",password="ABC123xyz",dbname="shampoo")
+dbListTables(out.db)
+```
+
+
+2. Create a time series of the shampoo sales data contained in this database and plot that series. Does this time series have a trend?  Does it have seasonality?  Justify your claims.
+
+```{r}
+results<-dbSendQuery(out.db,"SELECT * FROM sales")
+test.df<-fetch(results)
+dbClearResult(results)
+sales.ts<-ts(test.df$amount,start=c("1995"),end=c("1997"),frequency = 12)
+plot(sales.ts)
+```
+
+```{solution,eval=FALSE}
+The trend is a little bit positive since it goes up from where it started but there is a big seasonality to it. Which makes a lot of sense because not everyone is going to be buying shampoo constantly instead, they go to the store when they run out which is probably why we see it go up and down so much.
+```
+
+
+3. Split the time series into a training period (the first two years) and a validation period (the final year).
+
+```{r}
+plot(sales.ts)
+
+sales.train.ts<-window(sales.ts,end=c(1996,1))
+sales.test.ts<-window(sales.ts,start=c(1996,2))
+plot(sales.train.ts,xlim=c(1995,1998),ylim=c(0,500))+
+  lines(sales.test.ts,col="red",lty=2)
+```
+
+
+4. Plot the autocorrelation function for your training data and test the hypothesis that the series is *not* serially correlated.  State your conclusions.
+
+```{r}
+library(forecast)
+ggAcf(sales.train.ts)
+Box.test(sales.train.ts,type="Ljung-Box")
+```
+
+```{solution,eval=FALSE}
+Since the p value from the ljung box test is not significant I fail to reject the null that there is no autocorrelation
+```
+
+
+5. Forecast the time series for the validation period using a naive forecast. Be sure to include the correct horizon (`h`) parameter and construct a graph of your forecast against the actual testing data and compute an appropriate measure of accuracy on the testing data.
+
+```{r}
+sales.fore.n<-naive(sales.train.ts,h=11)
+autoplot(sales.fore.n)+
+  autolayer(sales.test.ts,series="Actual")
+accuracy(sales.fore.n)
+```
+
+
+6. Construct a seasonal naive forecast for the testing period. Again, construct a graph showing your forecast and the actual testing data and compute an appropriate measure of accuracy on the testing data.
+
+```{r}
+sales.fore.sn<-snaive(sales.train.ts,h=11)
+autoplot(sales.fore.sn)+
+    autolayer(sales.test.ts,series="Actual")
+accuracy(sales.fore.sn)
+```
+
+
+7. Use an ETS model to construct a forecast for the testing period.  Again, graph the forecast against the actual testing data and compute an appropriate measure of accuracy on the testing data.  You should adjust the mode of the ETS model to see what works best.
+
+```{r}
+sales.ets.ANN <- ets(sales.train.ts,model="ANN") # SIMPLE EXPONENTIAL SMOOTHING
+sales.ets.AAN <- ets(sales.train.ts,model="AAN") # DOUBLE EXPONENTIAL SMOOTHING (holt)
+sales.fore.ANN <- forecast(sales.ets.ANN,h=11)
+sales.fore.AAN <- forecast(sales.ets.AAN,h=11)
+autoplot(sales.test.ts,series="Actual",col="black") +
+  autolayer(sales.fore.ANN$mean,series="ANN") +
+  autolayer(sales.fore.AAN$mean,series="AAN") 
+
+```
+
+
+8. Which member of the ETS family was used in your model above?  Which of the three models you constructed appears to work the best?  Justify your assertion.
+
+```{solution,eval=FALSE}
+I feel like the ets models are really just trash. I think that the seasonal naive model got really close to what it should be but the actual line went out of the 95% conf interval for a bit. The naive method got it all within the blue.
+```
+
