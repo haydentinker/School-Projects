@@ -1,0 +1,6 @@
+Menu
+BuildTree 100
+Visualize
+SmallestQuake yellow
+Visualize
+Quit
