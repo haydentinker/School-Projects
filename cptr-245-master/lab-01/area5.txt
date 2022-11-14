@@ -1,4 +1,0 @@
-s = "5"
-side =5
-The area of the square with sides of5 units is25 units
-The area of the circle with radius of5 units is78 units

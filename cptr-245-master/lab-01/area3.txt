@@ -1,4 +1,0 @@
-s = "3"
-side =3
-The area of the square with sides of3 units is9 units
-The area of the circle with radius of3 units is28 units
